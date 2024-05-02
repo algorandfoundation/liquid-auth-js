@@ -1,0 +1,11 @@
+{
+  "name": "liquid-auth-js",
+  "version": "1.0.0",
+  "description": "Client JSON-RPC interfaces are generated from OpenAPI 3.0 specifications. All clients should mirror the same interfaces and include the same parameters (as much as possible).",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "author": "",
+  "license": "MIT"
+}

@@ -1,6 +1,6 @@
 # Overview
 
-Client JSON-RPC interfaces are generated from OpenAPI 3.0 specifications.
+Client JSON-RPC interfaces should be generated from OpenAPI 3.0 specifications.
 All clients should mirror the same interfaces and include the same parameters (as much as possible).
 
 ```typescript
