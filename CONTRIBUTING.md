@@ -47,14 +47,14 @@ ORIGIN=https://<NGROK_STATIC_DOMAIN>
 ```
 
 ### Start services
+Make sure to [login to ghcr.io](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-with-a-personal-access-token-classic) with your GitHub credentials to pull the images.
 ```bash
 docker compose up -d
 ```
-
 
 ### Start the development server
 ```bash
 npm run dev
 ```
 
-Open your browser and navigate to `https://<NGROK_STATIC_DOMAIN>` to see the service running.
+Open your browser and navigate to `https://<NGROK_STATIC_DOMAIN>` to see the example running.
