@@ -1,7 +1,7 @@
 {
-  "name": "@algorandfoundation/encoding",
-  "version": "1.0.0",
-  "description": "Utilities for Liquid Auth JS",
+  "name": "@algorandfoundation/utils",
+  "version": "0.0.1",
+  "description": "Utilities for Encoding in JS",
   "main": "./lib/index.js",
   "type": "module",
   "exports": {
@@ -30,7 +30,7 @@
     "test": "tsc && node --test ./tests/*.spec.js",
     "test:cov": "tsc && c8 node --test ./tests/*.spec.js"
   },
-  "author": "",
+  "author": "Algorand Foundation",
   "license": "MIT",
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^7.8.0",

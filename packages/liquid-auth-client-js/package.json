@@ -17,10 +17,6 @@
       "default": "./lib/assertion.js",
       "types": "./lib/assertion.d.ts"
     },
-    "./connect": {
-      "default": "./lib/connect.js",
-      "types": "./lib/connect.d.ts"
-    },
     "./signal": {
       "default": "./lib/signal.js",
       "types": "./lib/signal.d.ts"
@@ -39,7 +35,7 @@
     "test": "tsc && node --test ./tests/*.spec.js",
     "test:cov": "tsc && c8 node --test ./tests/*.spec.js"
   },
-  "author": "",
+  "author": "Algorand Foundation",
   "license": "MIT",
   "devDependencies": {
     "@swc/register": "^0.1.10",
@@ -62,10 +58,11 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
-    "@algorandfoundation/encoding": "^1.0.0",
+    "@algorandfoundation/utils": "0.0.1",
+    "canvas": "^2.11.2",
     "eventemitter3": "^5.0.1",
-    "isomorphic-fetch": "^3.0.0",
-    "qr-code-styling": "^1.6.0-rc.1",
+    "qr-code-styling": "*",
+    "socket.io-client": "^4.7.5",
     "tweetnacl": "^1.0.3"
   }
 }

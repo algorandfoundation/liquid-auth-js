@@ -1,11 +1,20 @@
 {
   "name": "liquid-auth-js",
-  "version": "1.0.0",
-  "description": "Client JSON-RPC interfaces are generated from OpenAPI 3.0 specifications. All clients should mirror the same interfaces and include the same parameters (as much as possible).",
   "private": true,
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "example"
   ],
-  "author": "",
-  "license": "MIT"
+  "scripts": {
+    "dev": "concurrently \"npm:dev:*\"",
+    "dev:utils": "npm run dev --if-present --workspace @algorandfoundation/utils",
+    "dev:sdk": "wait-on ./packages/liquid-auth-core/lib/index.js && npm run dev --if-present --workspace @algorandfoundation/liquid-client",
+    "dev:ui": "wait-on ./packages/liquid-auth-client-js/lib/index.js && npm run dev --if-present --workspace basic-example"
+  },
+  "author": "Algorand Foundation",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "wait-on": "^7.2.0"
+  }
 }
