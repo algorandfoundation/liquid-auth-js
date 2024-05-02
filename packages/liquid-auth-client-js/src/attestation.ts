@@ -2,7 +2,7 @@
  * This module is only for browser and currently not used in the project.
  * However, it could be useful for extension wallets or other browser-based wallets.
  */
-import { fromBase64Url, toBase64URL } from '@liquid/core/encoding';
+import {decodeAddress, fromBase64Url, toBase64URL} from '@algorandfoundation/utils/encoding';
 import { DEFAULT_FETCH_OPTIONS } from './constants.js';
 import { isValidResponse } from './errors.js';
 
@@ -13,6 +13,9 @@ export const DEFAULT_ATTESTATION_OPTIONS = {
     userVerification: 'required',
     requireResidentKey: false,
   },
+  extensions: {
+    liquid: true
+  }
 };
 export interface EncodedAuthenticatorAttestationResponse {
   [k: string]: string | undefined;
@@ -49,9 +52,11 @@ function encodeAttestationCredential(
   };
 }
 
-function decodeAttestationOptions(options) {
+function decodeAttestationOptions(options, liquidOptions) {
   const attestationOptions = { ...options };
-  attestationOptions.user.id = fromBase64Url(options.user.id);
+  attestationOptions.user.id = decodeAddress(liquidOptions.address);
+  attestationOptions.user.name = liquidOptions.address;
+  attestationOptions.user.displayName = liquidOptions.address;
   attestationOptions.challenge = fromBase64Url(options.challenge);
 
   if (attestationOptions.excludeCredentials) {
@@ -111,6 +116,7 @@ export async function fetchAttestationResponse(
  */
 export async function attestation(
   origin: string,
+  onChallenge: (options: any) => any,
   options = DEFAULT_ATTESTATION_OPTIONS,
 ) {
   const encodedAttestationOptions = await fetchAttestationRequest(
@@ -120,16 +126,17 @@ export async function attestation(
     if (!isValidResponse(r)) throw new Error(r.statusText);
     return r.json();
   });
-
   if (typeof encodedAttestationOptions.error !== 'undefined') {
     throw new Error(encodedAttestationOptions.error);
   }
 
+  const liquidOptions = await onChallenge(fromBase64Url(encodedAttestationOptions.challenge))
+  const decodedPublicKey = decodeAttestationOptions(encodedAttestationOptions, liquidOptions)
   const credential = encodeAttestationCredential(
     (await navigator.credentials.create({
-      publicKey: decodeAttestationOptions(encodedAttestationOptions),
+      publicKey: decodedPublicKey,
     })) as PublicKeyCredential,
   );
-
+  credential.clientExtensionResults = {liquid: liquidOptions} as any;
   return await fetchAttestationResponse(origin, credential);
 }

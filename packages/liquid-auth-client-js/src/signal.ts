@@ -1,7 +1,8 @@
 import { io, ManagerOptions, Socket, SocketOptions } from 'socket.io-client';
 import QRCodeStyling, { Options as QRCodeOptions } from 'qr-code-styling';
 import { EventEmitter } from 'eventemitter3';
-import { toBase64URL } from '@liquid/core';
+import {attestation, DEFAULT_ATTESTATION_OPTIONS} from './attestation.js';
+import { toBase64URL } from '@algorandfoundation/utils/encoding';
 import nacl from 'tweetnacl';
 
 export type LinkMessage = {
@@ -16,6 +17,7 @@ export const UNAUTHENTICATED_MESSAGE = 'Not authenticated';
 export const DEFAULT_QR_CODE_OPTIONS: QRCodeOptions = {
   width: 500,
   height: 500,
+  type: 'svg',
   data: 'algorand://',
   margin: 25,
   imageOptions: { hideBackgroundDots: true, imageSize: 0.4, margin: 15 },
@@ -32,7 +34,7 @@ export const DEFAULT_QR_CODE_OPTIONS: QRCodeOptions = {
   },
   backgroundOptions: { color: '#ffffff', gradient: null },
   // TODO: Host logo publicly
-  image: '/logo.png',
+  image: 'https://algorandtechnologies.com/assets/media-kit/logos/logo-marks/png/algorand_logo_mark_black.png',
   cornersSquareOptions: {
     color: '#000000',
     gradient: {
@@ -67,8 +69,6 @@ export async function generateQRCode(
   qrCodeOptions.data = JSON.stringify({
     requestId: requestId,
     origin: url,
-    // TODO: Remove challenge from QR Code
-    challenge: toBase64URL(nacl.randomBytes(nacl.sign.seedLength)),
   });
 
   // @ts-expect-error, figure out call signature issue
@@ -115,9 +115,19 @@ export class SignalClient extends EventEmitter {
 
   static generateRequestId() {
     //TODO: replace with toBase64URL(nacl.randomBytes(nacl.sign.seedLength)
-    return Math.random();
+    return Math.random() as any;
   }
+  attestation(onChallenge: (challenge: Uint8Array)=>any, options = DEFAULT_ATTESTATION_OPTIONS){
+    return attestation(this.url, onChallenge, options).then(()=>{
+        this.authenticated = true;
+    }).catch((e)=>{
+        this.authenticated = false;
+        throw e;
+    })
+  }
+  assertion(){
 
+  }
   /**
    * Create QR Code
    */
@@ -159,7 +169,18 @@ export class SignalClient extends EventEmitter {
   async peer(
     requestId: any,
     type: 'offer' | 'answer',
-    config?: RTCConfiguration,
+    config: RTCConfiguration = {
+      iceServers: [
+        {
+          urls: [
+            'stun:stun.l.google.com:19302',
+            'stun:stun1.l.google.com:19302',
+            'stun:stun2.l.google.com:19302',
+          ],
+        },
+      ],
+      iceCandidatePoolSize: 10,
+    },
   ): Promise<RTCDataChannel> {
     if (typeof this.requestId !== 'undefined')
       throw new Error(REQUEST_IN_PROCESS_MESSAGE);
@@ -171,7 +192,7 @@ export class SignalClient extends EventEmitter {
       globalThis.peerClient = this.peerClient;
       this.type = type === 'offer' ? 'answer' : 'offer';
       // Wait for a link message
-      await this.link(requestId);
+      type === 'offer' && await this.link(requestId);
       // Listen for Local Candidates
       this.peerClient.onicecandidate = (event) => {
         if (event.candidate) {
@@ -199,7 +220,6 @@ export class SignalClient extends EventEmitter {
 
       // Listen for Remote DataChannel and Resolve
       this.peerClient.ondatachannel = (event) => {
-        console.log(event);
         globalThis.dc = event.channel;
         this.emit('data-channel', event.channel);
         resolve(event.channel);
@@ -224,12 +244,24 @@ export class SignalClient extends EventEmitter {
         this.emit(`${this.type}-description`, answer.sdp);
         this.socket.emit(`${this.type}-description`, answer.sdp);
       } else {
-        const localSdp = await this.peerClient.createOffer();
         const dataChannel = this.peerClient.createDataChannel('liquid');
+        const localSdp = await this.peerClient.createOffer();
         await this.peerClient.setLocalDescription(localSdp);
         this.socket.emit(`${this.type}-description`, localSdp.sdp);
+        this.emit(`${this.type}-description`, localSdp.sdp);
         const sdp = await this.signal(type);
         await this.peerClient.setRemoteDescription(sdp);
+        if (candidatesBuffer.length > 0) {
+          await Promise.all(
+              candidatesBuffer.map(async (candidate) => {
+                this.emit(`${type}-candidate`, candidate);
+                await this.peerClient.addIceCandidate(
+                    new RTCIceCandidate(candidate),
+                );
+              }),
+          );
+          candidatesBuffer = [];
+        }
         this.emit('data-channel', dataChannel);
         resolve(dataChannel);
       }
