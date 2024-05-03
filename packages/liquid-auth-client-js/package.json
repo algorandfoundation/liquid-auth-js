@@ -33,11 +33,18 @@
     "lint": "eslint --fix src",
     "test:ts": "node --import tsx --test ./src/client/*.spec.ts",
     "test": "tsc && node --test ./tests/*.spec.js",
-    "test:cov": "tsc && c8 node --test ./tests/*.spec.js"
+    "test:cov": "tsc && c8 node --test ./tests/*.spec.js",
+    "release": "semantic-release -e semantic-release-monorepo"
   },
   "author": "Algorand Foundation",
   "license": "MIT",
   "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^12.0.0",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^10.0.3",
+    "@semantic-release/npm": "^12.0.0",
+    "@semantic-release/release-notes-generator": "^13.0.0",
     "@swc/register": "^0.1.10",
     "@types/chai": "^4.3.14",
     "@types/qrcode": "^1.5.5",
@@ -58,11 +65,43 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
-    "@algorandfoundation/utils": "0.0.1",
+    "@algorandfoundation/utils": ">=0.0.1 <2.0.0",
     "canvas": "^2.11.2",
     "eventemitter3": "^5.0.1",
     "qr-code-styling": "*",
     "socket.io-client": "^4.7.5",
     "tweetnacl": "^1.0.3"
+  },
+  "release": {
+    "extends": "semantic-release-monorepo",
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      "@semantic-release/changelog",
+      "@semantic-release/npm",
+      [
+        "@semantic-release/git",
+        {
+          "assets": [
+            "CHANGELOG.md",
+            "package.json"
+          ],
+          "message": "chore(release): Liquid Client \n\n${nextRelease.notes}"
+        }
+      ],
+      [
+        "@semantic-release/github",
+        {
+          "successComment": false
+        }
+      ]
+    ],
+    "branches": [
+      "main",
+      {
+        "name": "develop",
+        "prerelease": "beta"
+      }
+    ]
   }
 }
