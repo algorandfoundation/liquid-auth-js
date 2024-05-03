@@ -32,8 +32,8 @@
     "build:docs": "typedoc --plugin typedoc-plugin-markdown --out docs src src/client",
     "lint": "eslint --fix src",
     "test:ts": "node --import tsx --test ./src/client/*.spec.ts",
-    "test": "tsc && node --test ./tests/*.spec.js",
-    "test:cov": "tsc && c8 node --test ./tests/*.spec.js",
+    "test": "tsc && node --test",
+    "test:cov": "tsc && c8 node --test",
     "release": "semantic-release -e semantic-release-monorepo"
   },
   "author": "Algorand Foundation",
