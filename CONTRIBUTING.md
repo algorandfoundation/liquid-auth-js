@@ -52,8 +52,18 @@ Make sure to [login to ghcr.io](https://docs.github.com/en/packages/working-with
 docker compose up -d
 ```
 
-### Start the development server
+### Start the build watcher
+
+Watch for changes and rebuild the library
 ```bash
+npm run dev
+```
+
+### Start the simplified demo:
+
+Start the example Vite application
+```bash
+cd ./example
 npm run dev
 ```
 
