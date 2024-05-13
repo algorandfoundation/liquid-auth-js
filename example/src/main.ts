@@ -31,7 +31,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
     <div class="call-session">
         <div class="offer">
-            <a href="https://github.com/algorandfoundation/liquid-auth-js" target="_blank">
+            <a id="qr-link" href="https://github.com/algorandfoundation/liquid-auth-js" target="_blank">
               <img src="" class="logo hidden" alt="Liquid QR Code" />
             </a>
             <hgroup>
@@ -95,6 +95,10 @@ async function handleOfferClient() {
     const image = document.querySelector('.logo') as HTMLImageElement
     image.src = await client.qrCode()
     image.classList.toggle('hidden')
+
+    const deepLink = document.querySelector('#qr-link') as HTMLAnchorElement
+    deepLink.href = `liquid://${window.origin.replace('https://', '')}/?requestId=${requestId}`
+
     document.querySelector('#start')!.classList.add('hidden')
     document.querySelector('#toggle')!.classList.add('hidden')
 }

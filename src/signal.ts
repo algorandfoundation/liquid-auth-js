@@ -18,7 +18,7 @@ export const DEFAULT_QR_CODE_OPTIONS: QRCodeOptions = {
   width: 500,
   height: 500,
   type: 'svg',
-  data: 'algorand://',
+  data: 'liquid://',
   margin: 25,
   imageOptions: { hideBackgroundDots: true, imageSize: 0.4, margin: 15 },
   dotsOptions: {
@@ -65,11 +65,7 @@ export async function generateQRCode(
   qrCodeOptions: QRCodeOptions = DEFAULT_QR_CODE_OPTIONS,
 ) {
   if (requestId === 'undefined') throw new Error(REQUEST_IS_MISSING_MESSAGE);
-  // TODO: Serialize data to standard URL for Deep-Links
-  qrCodeOptions.data = JSON.stringify({
-    requestId: requestId,
-    origin: url,
-  });
+  qrCodeOptions.data = `liquid://${url.replace('https://', '')}/?requestId=${requestId}`;
 
   // @ts-expect-error, figure out call signature issue
   const qrCode = new QRCodeStyling(qrCodeOptions);
