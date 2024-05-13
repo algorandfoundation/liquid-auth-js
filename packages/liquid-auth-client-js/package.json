@@ -65,7 +65,6 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
-    "@algorandfoundation/utils": ">=0.0.1 <2.0.0",
     "canvas": "^2.11.2",
     "eventemitter3": "^5.0.1",
     "qr-code-styling": "*",

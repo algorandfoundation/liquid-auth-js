@@ -2,7 +2,7 @@
  * This module is only for browser and currently not used in the project.
  * However, it could be useful for extension wallets or other browser-based wallets.
  */
-import {decodeAddress, fromBase64Url, toBase64URL} from '@algorandfoundation/utils/encoding';
+import {decodeAddress, fromBase64Url, toBase64URL} from './encoding.js';
 import { DEFAULT_FETCH_OPTIONS } from './constants.js';
 import { isValidResponse } from './errors.js';
 

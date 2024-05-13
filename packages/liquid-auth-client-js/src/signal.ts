@@ -2,7 +2,7 @@ import { io, ManagerOptions, Socket, SocketOptions } from 'socket.io-client';
 import QRCodeStyling, { Options as QRCodeOptions } from 'qr-code-styling';
 import { EventEmitter } from 'eventemitter3';
 import {attestation, DEFAULT_ATTESTATION_OPTIONS} from './attestation.js';
-import { toBase64URL } from '@algorandfoundation/utils/encoding';
+import { toBase64URL } from './encoding.js';
 import nacl from 'tweetnacl';
 
 export type LinkMessage = {
