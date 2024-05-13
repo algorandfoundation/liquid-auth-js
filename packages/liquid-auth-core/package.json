@@ -29,7 +29,7 @@
     "lint": "eslint --fix src",
     "test": "tsc && node --test",
     "test:cov": "tsc && c8 node --test",
-    "release": "semantic-release -e semantic-release-monorepo"
+    "release": "semantic-release --dry-run  -e semantic-release-monorepo"
   },
   "author": "Algorand Foundation",
   "license": "MIT",
