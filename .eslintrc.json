@@ -16,6 +16,10 @@
         "plugin:@typescript-eslint/recommended",
         "plugin:prettier/recommended"
     ],
+    "ignorePatterns": [
+        "src/hi-base32.ts",
+        "src/sha512.ts"
+    ],
     "rules": {
         "@typescript-eslint/no-explicit-any": "warn"
     }
