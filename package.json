@@ -35,13 +35,13 @@
     "build": "tsc",
     "build:docs": "typedoc --plugin typedoc-plugin-markdown --out docs src src/client",
     "lint": "eslint --fix src",
-    "test:ts": "node --import tsx --test ./src/client/*.spec.ts",
     "test": "tsc && node --test",
     "test:cov": "tsc && c8 node --test",
-    "release": "semantic-release --dry-run -e semantic-release-monorepo"
+    "release": "semantic-release --dry-run",
+    "postinstall": "tsc"
   },
   "author": "Algorand Foundation",
-  "license": "MIT",
+  "license": "AGPL-3.0",
   "devDependencies": {
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/commit-analyzer": "^12.0.0",
@@ -54,7 +54,6 @@
     "@types/qrcode": "^1.5.5",
     "@typescript-eslint/eslint-plugin": "^7.8.0",
     "@typescript-eslint/parser": "^7.8.0",
-    "algosdk": "^2.7.0",
     "c8": "^9.1.0",
     "chai": "^5.1.0",
     "eslint": "^8.57.0",
@@ -63,7 +62,6 @@
     "eslint-plugin-tsdoc": "^0.2.17",
     "semantic-release": "^23.0.8",
     "semantic-release-monorepo": "^8.0.2",
-    "tsx": "^4.7.2",
     "typedoc": "^0.25.13",
     "typedoc-plugin-markdown": "^4.0.0-next.55",
     "typescript": "^5.4.5"
@@ -76,7 +74,6 @@
     "tweetnacl": "^1.0.3"
   },
   "release": {
-    "extends": "semantic-release-monorepo",
     "plugins": [
       "@semantic-release/commit-analyzer",
       "@semantic-release/release-notes-generator",
