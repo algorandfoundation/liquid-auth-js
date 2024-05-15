@@ -1,7 +1,7 @@
 {
-  "name": "@algorandfoundation/encoding",
-  "version": "1.0.0",
-  "description": "Utilities for Liquid Auth JS",
+  "name": "@algorandfoundation/utils",
+  "version": "0.0.1",
+  "description": "Utilities for Encoding in JS",
   "main": "./lib/index.js",
   "type": "module",
   "exports": {
@@ -27,12 +27,19 @@
     "build": "tsc",
     "build:docs": "typedoc --plugin typedoc-plugin-markdown --out docs src",
     "lint": "eslint --fix src",
-    "test": "tsc && node --test ./tests/*.spec.js",
-    "test:cov": "tsc && c8 node --test ./tests/*.spec.js"
+    "test": "tsc && node --test",
+    "test:cov": "tsc && c8 node --test",
+    "release": "semantic-release --dry-run  -e semantic-release-monorepo"
   },
-  "author": "",
+  "author": "Algorand Foundation",
   "license": "MIT",
   "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^12.0.0",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^10.0.3",
+    "@semantic-release/npm": "^12.0.0",
+    "@semantic-release/release-notes-generator": "^13.0.0",
     "@typescript-eslint/eslint-plugin": "^7.8.0",
     "@typescript-eslint/parser": "^7.6.0",
     "c8": "^9.1.0",
@@ -48,5 +55,37 @@
   },
   "dependencies": {
     "tweetnacl": "^1.0.3"
+  },
+  "release": {
+    "extends": "semantic-release-monorepo",
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      "@semantic-release/changelog",
+      "@semantic-release/npm",
+      [
+        "@semantic-release/git",
+        {
+          "assets": [
+            "CHANGELOG.md",
+            "package.json"
+          ],
+          "message": "chore(release): Utils \n\n${nextRelease.notes}"
+        }
+      ],
+      [
+        "@semantic-release/github",
+        {
+          "successComment": false
+        }
+      ]
+    ],
+    "branches": [
+      "main",
+      {
+        "name": "develop",
+        "prerelease": "beta"
+      }
+    ]
   }
 }
