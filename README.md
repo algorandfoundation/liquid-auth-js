@@ -7,7 +7,7 @@ This project is an example Client for TypeScript for using the Liquid-Auth API.
 ## Install
 
 ```bash
-npm install @algorandfoundation/liquid-client --save
+npm install algorandfoundation/liquid-auth-js --save
 ````
 
 # Usage
@@ -17,7 +17,7 @@ import {SignalClient} from '@algorandfoundation/liquid-client';
 const client = new SignalClient(window.origin);
 ```
 
-See the [liquid-auth documentation]() for more information on the API.
+See the [liquid-auth documentation](https://github.com/algorandfoundation/liquid-auth) for more information on the API.
 
 ## Browser Wallet Integration
 
