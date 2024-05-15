@@ -2,7 +2,7 @@
  * This module is only for browser and currently not used in the project.
  * However, it could be useful for extension wallets or other browser-based wallets.
  */
-import {decodeAddress, fromBase64Url, toBase64URL} from '@algorandfoundation/utils/encoding';
+import { decodeAddress, fromBase64Url, toBase64URL } from './encoding.js';
 import { DEFAULT_FETCH_OPTIONS } from './constants.js';
 import { isValidResponse } from './errors.js';
 
@@ -14,8 +14,8 @@ export const DEFAULT_ATTESTATION_OPTIONS = {
     requireResidentKey: false,
   },
   extensions: {
-    liquid: true
-  }
+    liquid: true,
+  },
 };
 export interface EncodedAuthenticatorAttestationResponse {
   [k: string]: string | undefined;
@@ -130,13 +130,18 @@ export async function attestation(
     throw new Error(encodedAttestationOptions.error);
   }
 
-  const liquidOptions = await onChallenge(fromBase64Url(encodedAttestationOptions.challenge))
-  const decodedPublicKey = decodeAttestationOptions(encodedAttestationOptions, liquidOptions)
+  const liquidOptions = await onChallenge(
+    fromBase64Url(encodedAttestationOptions.challenge),
+  );
+  const decodedPublicKey = decodeAttestationOptions(
+    encodedAttestationOptions,
+    liquidOptions,
+  );
   const credential = encodeAttestationCredential(
     (await navigator.credentials.create({
       publicKey: decodedPublicKey,
     })) as PublicKeyCredential,
   );
-  credential.clientExtensionResults = {liquid: liquidOptions} as any;
+  credential.clientExtensionResults = { liquid: liquidOptions } as any;
   return await fetchAttestationResponse(origin, credential);
 }

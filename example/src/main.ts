@@ -1,8 +1,7 @@
 import './style.css'
 import * as nacl from 'tweetnacl'
 import {mnemonicToSecretKey} from 'algosdk'
-import {SignalClient} from "@algorandfoundation/liquid-client";
-import {toBase64URL} from "@algorandfoundation/utils";
+import {SignalClient, toBase64URL} from "@algorandfoundation/liquid-client";
 
 // Test Account
 const testAccount = mnemonicToSecretKey(

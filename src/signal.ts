@@ -1,8 +1,8 @@
 import { io, ManagerOptions, Socket, SocketOptions } from 'socket.io-client';
 import QRCodeStyling, { Options as QRCodeOptions } from 'qr-code-styling';
 import { EventEmitter } from 'eventemitter3';
-import {attestation, DEFAULT_ATTESTATION_OPTIONS} from './attestation.js';
-import { toBase64URL } from '@algorandfoundation/utils/encoding';
+import { attestation, DEFAULT_ATTESTATION_OPTIONS } from './attestation.js';
+import { toBase64URL } from './encoding.js';
 import nacl from 'tweetnacl';
 
 export type LinkMessage = {
@@ -34,7 +34,8 @@ export const DEFAULT_QR_CODE_OPTIONS: QRCodeOptions = {
   },
   backgroundOptions: { color: '#ffffff', gradient: null },
   // TODO: Host logo publicly
-  image: 'https://algorandtechnologies.com/assets/media-kit/logos/logo-marks/png/algorand_logo_mark_black.png',
+  image:
+    'https://algorandtechnologies.com/assets/media-kit/logos/logo-marks/png/algorand_logo_mark_black.png',
   cornersSquareOptions: {
     color: '#000000',
     gradient: {
@@ -117,17 +118,20 @@ export class SignalClient extends EventEmitter {
     //TODO: replace with toBase64URL(nacl.randomBytes(nacl.sign.seedLength)
     return Math.random() as any;
   }
-  attestation(onChallenge: (challenge: Uint8Array)=>any, options = DEFAULT_ATTESTATION_OPTIONS){
-    return attestation(this.url, onChallenge, options).then(()=>{
+  attestation(
+    onChallenge: (challenge: Uint8Array) => any,
+    options = DEFAULT_ATTESTATION_OPTIONS,
+  ) {
+    return attestation(this.url, onChallenge, options)
+      .then(() => {
         this.authenticated = true;
-    }).catch((e)=>{
+      })
+      .catch((e) => {
         this.authenticated = false;
         throw e;
-    })
+      });
   }
-  assertion(){
-
-  }
+  assertion() {}
   /**
    * Create QR Code
    */
@@ -192,7 +196,7 @@ export class SignalClient extends EventEmitter {
       globalThis.peerClient = this.peerClient;
       this.type = type === 'offer' ? 'answer' : 'offer';
       // Wait for a link message
-      type === 'offer' && await this.link(requestId);
+      type === 'offer' && (await this.link(requestId));
       // Listen for Local Candidates
       this.peerClient.onicecandidate = (event) => {
         if (event.candidate) {
@@ -253,12 +257,12 @@ export class SignalClient extends EventEmitter {
         await this.peerClient.setRemoteDescription(sdp);
         if (candidatesBuffer.length > 0) {
           await Promise.all(
-              candidatesBuffer.map(async (candidate) => {
-                this.emit(`${type}-candidate`, candidate);
-                await this.peerClient.addIceCandidate(
-                    new RTCIceCandidate(candidate),
-                );
-              }),
+            candidatesBuffer.map(async (candidate) => {
+              this.emit(`${type}-candidate`, candidate);
+              await this.peerClient.addIceCandidate(
+                new RTCIceCandidate(candidate),
+              );
+            }),
           );
           candidatesBuffer = [];
         }
