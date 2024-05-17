@@ -64,6 +64,7 @@ npm run dev
 Start the example Vite application
 ```bash
 cd ./example
+npm install
 npm run dev
 ```
 
