@@ -2,8 +2,6 @@ import { io, ManagerOptions, Socket, SocketOptions } from 'socket.io-client';
 import QRCodeStyling, { Options as QRCodeOptions } from 'qr-code-styling';
 import { EventEmitter } from 'eventemitter3';
 import { attestation, DEFAULT_ATTESTATION_OPTIONS } from './attestation.js';
-import { toBase64URL } from './encoding.js';
-import nacl from 'tweetnacl';
 
 export type LinkMessage = {
   credId?: string;
@@ -134,13 +132,6 @@ export class SignalClient extends EventEmitter {
   async qrCode() {
     if (typeof this.requestId === 'undefined')
       throw new Error(REQUEST_IS_MISSING_MESSAGE);
-    // TODO: Serialize data to standard URL for Deep-Links
-    this.qrCodeOptions.data = JSON.stringify({
-      requestId: this.requestId,
-      origin: this.url,
-      // TODO: Remove challenge from QR Code
-      challenge: toBase64URL(nacl.randomBytes(nacl.sign.seedLength)),
-    });
     return generateQRCode(
       { requestId: this.requestId, url: this.url },
       this.qrCodeOptions,
