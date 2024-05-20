@@ -1,23 +1,22 @@
-import test from 'node:test';
-import assert from 'node:assert';
+import {test, expect} from '@jest/globals';
 
-import * as encoding from '../lib/encoding.js';
-import base64UrlFixtures from './__fixtures__/encoding.base64url.fixtures.json' assert {type: 'json'};
-import walletKeysFixtures from './__fixtures__/wallet.keys.fixtures.json' assert {type: 'json'};
+import {toBase64URL, fromBase64Url, encodeAddress, decodeAddress, INVALID_BASE64URL_INPUT, MALFORMED_ADDRESS_ERROR_MSG, ALGORAND_ADDRESS_BAD_CHECKSUM_ERROR_MSG} from '../lib/encoding.js';
+import base64UrlFixtures from './__fixtures__/encoding.base64url.fixtures.json';
+import walletKeysFixtures from './__fixtures__/wallet.keys.fixtures.json';
 
 
 // Invalid Inputs
-test(`fromBase64URL(*) throws ${encoding.INVALID_BASE64URL_INPUT}`, function(){
-    assert.throws(()=>encoding.fromBase64Url(12345), new Error(encoding.INVALID_BASE64URL_INPUT));
+test(`fromBase64URL(*) throws ${INVALID_BASE64URL_INPUT}`, function(){
+    expect(()=>fromBase64Url(12345)).toThrow(new Error(INVALID_BASE64URL_INPUT));
 })
 base64UrlFixtures.forEach((fixture, i)=>{
     const encoder = new TextEncoder();
 
     test(`toBase64URL(${fixture.origin})`, () => {
-        assert.equal(fixture.toBase64Url, encoding.toBase64URL(i % 2 ? encoder.encode(fixture.origin) : fixture.fromBase64Url));
+        expect(toBase64URL(i % 2 ? encoder.encode(fixture.origin) : fixture.fromBase64Url)).toEqual(fixture.toBase64Url);
     })
     test(`fromBase64URL(${fixture.origin})`, () => {
-        assert.deepEqual(new Uint8Array(fixture.fromBase64Url), encoding.fromBase64Url(fixture.toBase64Url));
+        expect(fromBase64Url(fixture.toBase64Url)).toEqual(new Uint8Array(fixture.fromBase64Url));
     });
 })
 
@@ -25,22 +24,22 @@ base64UrlFixtures.forEach((fixture, i)=>{
 
 
 // Test Basic Inputs
-test(`decodeAddress(*) throws ${encoding.MALFORMED_ADDRESS_ERROR_MSG}`, function(){
-    assert.throws(()=>encoding.decodeAddress(12345), new Error(encoding.MALFORMED_ADDRESS_ERROR_MSG));
+test(`decodeAddress(*) throws ${MALFORMED_ADDRESS_ERROR_MSG}`, function(){
+    expect(()=>decodeAddress(12345)).toThrow( new Error(MALFORMED_ADDRESS_ERROR_MSG));
 })
 // Algorand Address Tests
 walletKeysFixtures.forEach(function (fixture){
     test(`decodeAddress(${fixture.encoded})`, function(){
-        const decoded = encoding.decodeAddress(fixture.encoded);
-        assert.deepEqual(new Uint8Array(fixture.publicKey), decoded);
+        const decoded = decodeAddress(fixture.encoded);
+        expect(decoded).toEqual(new Uint8Array(fixture.publicKey));
     })
     test(`encodeAddress(${fixture.encoded})`, function() {
-        const address = encoding.encodeAddress(new Uint8Array(fixture.publicKey));
-        assert.equal(fixture.encoded, address);
+        const address = encodeAddress(new Uint8Array(fixture.publicKey));
+        expect(address).toEqual(fixture.encoded);
     })
 
-    test(`decodeAddress(${fixture.encoded.slice(0, -4) + "===="}) throws ${encoding.ALGORAND_ADDRESS_BAD_CHECKSUM_ERROR_MSG}`, function(){
-        assert.throws(()=>encoding.decodeAddress(fixture.encoded.slice(0, -4) + "===="), new Error(encoding.ALGORAND_ADDRESS_BAD_CHECKSUM_ERROR_MSG))
+    test(`decodeAddress(${fixture.encoded.slice(0, -4) + "===="}) throws ${ALGORAND_ADDRESS_BAD_CHECKSUM_ERROR_MSG}`, function(){
+        expect(()=>decodeAddress(fixture.encoded.slice(0, -4) + "====")).toThrow(new Error(ALGORAND_ADDRESS_BAD_CHECKSUM_ERROR_MSG))
     })
 
 })
