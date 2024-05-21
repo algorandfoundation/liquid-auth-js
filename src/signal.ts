@@ -11,6 +11,7 @@ export type LinkMessage = {
 export const REQUEST_IS_MISSING_MESSAGE = 'Request id is required';
 export const REQUEST_IN_PROCESS_MESSAGE = 'Request in process';
 export const UNAUTHENTICATED_MESSAGE = 'Not authenticated';
+export const ORIGIN_IS_MISSING_MESSAGE = 'Origin is required';
 
 export const DEFAULT_QR_CODE_OPTIONS: QRCodeOptions = {
   width: 500,
@@ -64,7 +65,7 @@ export async function generateQRCode(
   qrCodeOptions: QRCodeOptions = DEFAULT_QR_CODE_OPTIONS,
 ) {
   if (requestId === 'undefined') throw new Error(REQUEST_IS_MISSING_MESSAGE);
-  qrCodeOptions.data = `liquid://${url.replace('https://', '')}/?requestId=${requestId}`;
+  qrCodeOptions.data = generateDeepLink(url, requestId);
 
   // @ts-expect-error, figure out call signature issue
   const qrCode = new QRCodeStyling(qrCodeOptions);
@@ -74,6 +75,20 @@ export async function generateQRCode(
   });
 }
 
+/**
+ * Generate a Deep Link URI
+ * @param {string} origin
+ * @param requestId
+ */
+export function generateDeepLink(origin: string, requestId: any) {
+  if (typeof origin !== 'string') {
+    throw new Error(ORIGIN_IS_MISSING_MESSAGE);
+  }
+  if (typeof requestId === 'undefined') {
+    throw new Error(REQUEST_IS_MISSING_MESSAGE);
+  }
+  return `liquid://${origin.replace('https://', '')}/?requestId=${requestId}`;
+}
 /**
  *
  */
@@ -138,6 +153,19 @@ export class SignalClient extends EventEmitter {
     );
   }
 
+  /**
+   * Create a Deep Link URI
+   * @param requestId
+   */
+  deepLink(requestId: any) {
+    if (
+      typeof requestId === 'undefined' &&
+      typeof this.requestId === 'undefined'
+    ) {
+      throw new Error(REQUEST_IS_MISSING_MESSAGE);
+    }
+    return generateDeepLink(this.url, requestId || this.requestId);
+  }
   /**
    * # Create a peer connection
    *
