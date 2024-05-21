@@ -97,7 +97,7 @@ async function handleOfferClient() {
     image.classList.toggle('hidden')
 
     const deepLink = document.querySelector('#qr-link') as HTMLAnchorElement
-    deepLink.href = `liquid://${window.origin.replace('https://', '')}/?requestId=${requestId}`
+    deepLink.href = client.deepLink(requestId)
 
     document.querySelector('#start')!.classList.add('hidden')
     document.querySelector('#toggle')!.classList.add('hidden')
