@@ -1,7 +1,7 @@
 import './style.css'
 import * as nacl from 'tweetnacl'
-import {mnemonicToSecretKey} from 'algosdk'
-import {SignalClient, toBase64URL} from "@algorandfoundation/liquid-client";
+import { mnemonicToSecretKey } from 'algosdk'
+import { SignalClient, toBase64URL } from "@algorandfoundation/liquid-client";
 
 // Test Account
 const testAccount = mnemonicToSecretKey(
@@ -18,6 +18,16 @@ const RTC_CONFIGURATION = {
                 'stun:stun1.l.google.com:19302',
                 'stun:stun2.l.google.com:19302',
             ],
+        },
+        {
+            urls: [
+                "turn:global.relay.metered.ca:80",
+                "turn:global.relay.metered.ca:80?transport=tcp",
+                "turn:global.relay.metered.ca:443",
+                "turns:global.relay.metered.ca:443?transport=tcp"
+            ],
+            username: "fc7708976bf5d60be20c5a1d",
+            credential: "sVpEREQGGhXOw4gX",
         },
     ],
     iceCandidatePoolSize: 10,
@@ -60,7 +70,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 /**
  * Send a Message to the remote client
  */
-function sendMessage(){
+function sendMessage() {
     const messages = document.querySelector('.messages') as HTMLDivElement
     const message = document.querySelector('#message') as HTMLInputElement
     dc.send(message.value)
@@ -71,7 +81,7 @@ function sendMessage(){
  * Handle the data channel
  * @param dataChannel
  */
-function handleDataChannel(dataChannel: RTCDataChannel){
+function handleDataChannel(dataChannel: RTCDataChannel) {
     globalThis.dc = dataChannel
     const messagesContainer = document.querySelector('.message-container') as HTMLDivElement
     messagesContainer.classList.remove('hidden')
@@ -135,12 +145,12 @@ function handleAlternativeRequestId() {
 
 // Globals
 declare global {
-   var toggle: ()=> void
-   var handleOfferClient: ()=>void
-   var handleSignChallenge: ()=>void
-   var handleAlternativeRequestId: ()=>void
-   var sendMessage: ()=>void
-   var dc: RTCDataChannel
+    var toggle: () => void
+    var handleOfferClient: () => void
+    var handleSignChallenge: () => void
+    var handleAlternativeRequestId: () => void
+    var sendMessage: () => void
+    var dc: RTCDataChannel
 }
 globalThis.toggle = toggle
 globalThis.handleOfferClient = handleOfferClient
