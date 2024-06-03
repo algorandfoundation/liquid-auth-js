@@ -1,12 +1,76 @@
 import './style.css'
 import * as nacl from 'tweetnacl'
-import { mnemonicToSecretKey } from 'algosdk'
 import { SignalClient, toBase64URL } from "@algorandfoundation/liquid-client";
 
-// Test Account
-const testAccount = mnemonicToSecretKey(
-    'industry kangaroo visa history swarm exotic doctor fade strike honey ride bicycle pistol large eager solution midnight loan give list company behave purpose abstract good',
-);
+const testAccount = {
+    addr: "IKMUKRWTOEJMMJD4MUAQWWB4C473DEHXLCYHJ4R3RZWZKPNE7E2ZTQ7VD4",
+    sk: new Uint8Array([
+        153,
+        99,
+        94,
+        233,
+        195,
+        182,
+        109,
+        64,
+        9,
+        200,
+        81,
+        184,
+        78,
+        219,
+        114,
+        95,
+        177,
+        210,
+        244,
+        157,
+        200,
+        206,
+        99,
+        196,
+        224,
+        196,
+        38,
+        72,
+        151,
+        81,
+        204,
+        245,
+        66,
+        153,
+        69,
+        70,
+        211,
+        113,
+        18,
+        198,
+        36,
+        124,
+        101,
+        1,
+        11,
+        88,
+        60,
+        23,
+        63,
+        177,
+        144,
+        247,
+        88,
+        176,
+        116,
+        242,
+        59,
+        142,
+        109,
+        149,
+        61,
+        164,
+        249,
+        53
+    ])
+}
 // The Signaling Client
 const client = new SignalClient(window.origin)
 // WebRTC Configuration
