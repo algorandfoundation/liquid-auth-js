@@ -12,6 +12,7 @@ jest.unstable_mockModule("qr-code-styling", () => {
   return {
     default: class QRCodeStyling {
       constructor(options) {
+        // @ts-expect-error, needed for testing
         this.options = options;
       }
 
@@ -43,6 +44,7 @@ jest.unstable_mockModule("../lib/attestation.js", () => {
   };
 });
 
+// @ts-expect-error, needed for testing
 globalThis.RTCPeerConnection = jest.fn().mockImplementation(() => {
   return {
     createDataChannel: jest.fn(() => {
@@ -50,16 +52,23 @@ globalThis.RTCPeerConnection = jest.fn().mockImplementation(() => {
         send: jest.fn()
       };
     }),
+    // @ts-expect-error, needed for testing
     createOffer: jest.fn().mockResolvedValue({
       type: "offer",
       sdp: "offer-sdp-fixture"
     }),
+
+    // @ts-expect-error, needed for testing
     createAnswer: jest.fn().mockResolvedValue({
       type: "answer",
       sdp: "answer-sdp-fixture"
     }),
+
+    // @ts-expect-error, needed for testing
     setLocalDescription: jest.fn().mockResolvedValue(),
+    // @ts-expect-error, needed for testing
     setRemoteDescription: jest.fn().mockResolvedValue(),
+    // @ts-expect-error, needed for testing
     addIceCandidate: jest.fn().mockResolvedValue(),
     ondatachannel: jest.fn(),
     onicecandidate: jest.fn(),
@@ -72,6 +81,8 @@ globalThis.RTCPeerConnection = jest.fn().mockImplementation(() => {
     ontrack: jest.fn()
   };
 });
+
+// @ts-expect-error, needed for testing
 globalThis.RTCIceCandidate = jest.fn().mockImplementation((candidate) => {
   return candidate;
 })
@@ -155,7 +166,7 @@ describe("SignalClient", function() {
     expect(client.emit).toHaveBeenNthCalledWith(1, "link", { requestId });
     expect(client.emit).toHaveBeenNthCalledWith(2, "link-message", linkMessageFixture);
     // Wait for the next tick
-    await new Promise((resolve) => {
+    await new Promise<void>((resolve) => {
       process.nextTick(() => {
         resolve();
       });
@@ -173,7 +184,8 @@ describe("SignalClient", function() {
 
     // Emit an offer from a peer
     socket.emit("offer-description", sdpFixture.sdp);
-    client.peerClient.remoteDescription = "remote-description-fixture";
+
+    (client.peerClient as any).remoteDescription = "remote-description-fixture";
 
     // Emit an unbuffered candidate from the peer
     socket.emit('offer-candidate', { candidate: "candidate-fixture" });
@@ -207,7 +219,7 @@ describe("SignalClient", function() {
     expect(client.emit).toHaveBeenNthCalledWith(1, "link", { requestId });
     expect(client.emit).toHaveBeenNthCalledWith(2, "link-message", linkMessageFixture);
     // Wait for the next tick
-    await new Promise((resolve) => {
+    await new Promise<void>((resolve) => {
       process.nextTick(() => {
         resolve();
       });
@@ -228,7 +240,7 @@ describe("SignalClient", function() {
 
     // Emit an offer from a peer
     socket.emit("offer-description", sdpFixture.sdp);
-    client.peerClient.remoteDescription = "remote-description-fixture";
+    (client.peerClient as any).remoteDescription = "remote-description-fixture";
 
     // Emit an unbuffered candidate from the peer
     socket.emit('offer-candidate', { candidate: "candidate-fixture" });
@@ -272,7 +284,7 @@ describe("SignalClient", function() {
     expect(client.emit).toHaveBeenNthCalledWith(1, "offer-candidate", { "candidate": "candidate-fixture" });
 
     // Wait for the next tick
-    await new Promise((resolve) => {
+    await new Promise<void>((resolve) => {
       process.nextTick(() => {
         resolve();
       });
@@ -280,7 +292,7 @@ describe("SignalClient", function() {
 
     // Emit an answer from a peer
     socket.emit("answer-description", sdpFixture.sdp);
-    client.peerClient.remoteDescription = "remote-description-fixture";
+    (client.peerClient as any).remoteDescription = "remote-description-fixture";
 
     // Emit an unbuffered candidate from the peer
     socket.emit('answer-candidate', { candidate: "candidate-fixture" });
@@ -320,7 +332,7 @@ describe("SignalClient", function() {
     socket.emit('answer-candidate', { candidate: "candidate-fixture" });
 
     // Wait for the next tick
-    await new Promise((resolve) => {
+    await new Promise<void>((resolve) => {
       process.nextTick(() => {
         resolve();
       });
@@ -328,7 +340,7 @@ describe("SignalClient", function() {
 
     // Emit an answer from a peer
     socket.emit("answer-description", sdpFixture.sdp);
-    client.peerClient.remoteDescription = "remote-description-fixture";
+    (client.peerClient as any).remoteDescription = "remote-description-fixture";
 
     // Emit an unbuffered candidate from the peer
     socket.emit('answer-candidate', { candidate: "candidate-fixture" });
@@ -385,7 +397,10 @@ test("generateQRCode", async () => {
   const { generateQRCode, SignalClient, ...mod } = await import("../lib/signal.js");
   const qrFixture = { url: "https://liquid-auth.onrender.com", requestId: SignalClient.generateRequestId() };
   expect(generateQRCode(qrFixture)).toBeDefined();
-  await expect(() => generateQRCode({ url: qrFixture.url })).rejects.toThrow(new Error(mod.REQUEST_IS_MISSING_MESSAGE));
+  await expect(() =>
+    // @ts-expect-error, needed for testing
+    generateQRCode({ url: qrFixture.url })
+  ).rejects.toThrow(new Error(mod.REQUEST_IS_MISSING_MESSAGE));
   getRawData = () => {
     return new Promise((resolve) => {
       resolve(null);
