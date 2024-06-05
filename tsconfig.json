@@ -7,6 +7,7 @@
     "moduleResolution": "NodeNext",
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
-    "allowJs": true
+    "allowJs": true,
+    "resolveJsonModule": true
   }
 }

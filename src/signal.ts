@@ -65,7 +65,8 @@ export async function generateQRCode(
   { requestId, url }: { requestId: any; url: string },
   qrCodeOptions: QRCodeOptions = DEFAULT_QR_CODE_OPTIONS,
 ) {
-  if (requestId === 'undefined') throw new Error(REQUEST_IS_MISSING_MESSAGE);
+  if (typeof requestId === 'undefined')
+    throw new Error(REQUEST_IS_MISSING_MESSAGE);
   // TODO: Serialize data to standard URL for Deep-Links
   qrCodeOptions.data = JSON.stringify({
     requestId: requestId,
