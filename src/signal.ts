@@ -2,8 +2,6 @@ import { io, ManagerOptions, Socket, SocketOptions } from 'socket.io-client';
 import QRCodeStyling, { Options as QRCodeOptions } from 'qr-code-styling';
 import { EventEmitter } from 'eventemitter3';
 import { attestation, DEFAULT_ATTESTATION_OPTIONS } from './attestation.js';
-import { toBase64URL } from './encoding.js';
-import nacl from 'tweetnacl';
 
 export type LinkMessage = {
   credId?: string;
@@ -13,12 +11,13 @@ export type LinkMessage = {
 export const REQUEST_IS_MISSING_MESSAGE = 'Request id is required';
 export const REQUEST_IN_PROCESS_MESSAGE = 'Request in process';
 export const UNAUTHENTICATED_MESSAGE = 'Not authenticated';
+export const ORIGIN_IS_MISSING_MESSAGE = 'Origin is required';
 
 export const DEFAULT_QR_CODE_OPTIONS: QRCodeOptions = {
   width: 500,
   height: 500,
   type: 'svg',
-  data: 'algorand://',
+  data: 'liquid://',
   margin: 25,
   imageOptions: { hideBackgroundDots: true, imageSize: 0.4, margin: 15 },
   dotsOptions: {
@@ -67,11 +66,7 @@ export async function generateQRCode(
 ) {
   if (typeof requestId === 'undefined')
     throw new Error(REQUEST_IS_MISSING_MESSAGE);
-  // TODO: Serialize data to standard URL for Deep-Links
-  qrCodeOptions.data = JSON.stringify({
-    requestId: requestId,
-    origin: url,
-  });
+  qrCodeOptions.data = generateDeepLink(url, requestId);
 
   // @ts-expect-error, figure out call signature issue
   const qrCode = new QRCodeStyling(qrCodeOptions);
@@ -81,6 +76,20 @@ export async function generateQRCode(
   });
 }
 
+/**
+ * Generate a Deep Link URI
+ * @param {string} origin
+ * @param requestId
+ */
+export function generateDeepLink(origin: string, requestId: any) {
+  if (typeof origin !== 'string') {
+    throw new Error(ORIGIN_IS_MISSING_MESSAGE);
+  }
+  if (typeof requestId === 'undefined') {
+    throw new Error(REQUEST_IS_MISSING_MESSAGE);
+  }
+  return `liquid://${origin.replace('https://', '')}/?requestId=${requestId}`;
+}
 /**
  *
  */
@@ -139,19 +148,25 @@ export class SignalClient extends EventEmitter {
   async qrCode() {
     if (typeof this.requestId === 'undefined')
       throw new Error(REQUEST_IS_MISSING_MESSAGE);
-    // TODO: Serialize data to standard URL for Deep-Links
-    this.qrCodeOptions.data = JSON.stringify({
-      requestId: this.requestId,
-      origin: this.url,
-      // TODO: Remove challenge from QR Code
-      challenge: toBase64URL(nacl.randomBytes(nacl.sign.seedLength)),
-    });
     return generateQRCode(
       { requestId: this.requestId, url: this.url },
       this.qrCodeOptions,
     );
   }
 
+  /**
+   * Create a Deep Link URI
+   * @param requestId
+   */
+  deepLink(requestId: any) {
+    if (
+      typeof requestId === 'undefined' &&
+      typeof this.requestId === 'undefined'
+    ) {
+      throw new Error(REQUEST_IS_MISSING_MESSAGE);
+    }
+    return generateDeepLink(this.url, requestId || this.requestId);
+  }
   /**
    * # Create a peer connection
    *

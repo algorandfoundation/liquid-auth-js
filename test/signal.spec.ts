@@ -3,7 +3,7 @@ import SocketMock from "socket.io-mock";
 
 // Mock QR Code Raw Data
 let getRawData = () => {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     resolve(new Blob());
   });
 };
@@ -130,6 +130,17 @@ describe("SignalClient", function() {
     const qrCode = await client.qrCode();
     expect(qrCode).toBeDefined();
   });
+
+  test("deepLink", function() {
+    expect(() => client.deepLink()).toThrow(new Error(mod.REQUEST_IS_MISSING_MESSAGE));
+    const requestId = SignalClient.generateRequestId();
+    const fixture = `${client.url.replace('https://', 'liquid://')}/?requestId=${requestId}`
+    const deepLink = client.deepLink(requestId);
+    expect(deepLink).toEqual(fixture);
+
+    client.requestId = requestId;
+    expect(client.deepLink()).toEqual(fixture);
+  })
 
   // FIDO Attestations
   test("attestation", async function() {
@@ -408,3 +419,18 @@ test("generateQRCode", async () => {
   };
   await expect(() => generateQRCode(qrFixture)).rejects.toThrow(new TypeError("Could not get qrcode blob"));
 });
+
+test('generateDeepLink', async () => {
+  const { generateDeepLink, SignalClient, REQUEST_IS_MISSING_MESSAGE, ORIGIN_IS_MISSING_MESSAGE } = await import("../lib/signal.js");
+  const url = "https://liquid-auth.onrender.com"
+  const requestId = SignalClient.generateRequestId()
+  const fixture = `${url.replace('https://', 'liquid://')}/?requestId=${requestId}`
+  expect(generateDeepLink(url, requestId)).toEqual(fixture);
+  expect(() =>
+    // @ts-expect-error, needed for testing
+    generateDeepLink(url)
+  ).toThrow(new Error(REQUEST_IS_MISSING_MESSAGE));
+  expect(() =>
+    generateDeepLink(undefined, requestId)
+  ).toThrow(new Error(ORIGIN_IS_MISSING_MESSAGE));
+})
