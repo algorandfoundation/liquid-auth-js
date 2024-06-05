@@ -1,12 +1,76 @@
 import './style.css'
 import * as nacl from 'tweetnacl'
-import {mnemonicToSecretKey} from 'algosdk'
-import {SignalClient, toBase64URL} from "@algorandfoundation/liquid-client";
+import { SignalClient, toBase64URL } from "@algorandfoundation/liquid-client";
 
-// Test Account
-const testAccount = mnemonicToSecretKey(
-    'industry kangaroo visa history swarm exotic doctor fade strike honey ride bicycle pistol large eager solution midnight loan give list company behave purpose abstract good',
-);
+const testAccount = {
+    addr: "IKMUKRWTOEJMMJD4MUAQWWB4C473DEHXLCYHJ4R3RZWZKPNE7E2ZTQ7VD4",
+    sk: new Uint8Array([
+        153,
+        99,
+        94,
+        233,
+        195,
+        182,
+        109,
+        64,
+        9,
+        200,
+        81,
+        184,
+        78,
+        219,
+        114,
+        95,
+        177,
+        210,
+        244,
+        157,
+        200,
+        206,
+        99,
+        196,
+        224,
+        196,
+        38,
+        72,
+        151,
+        81,
+        204,
+        245,
+        66,
+        153,
+        69,
+        70,
+        211,
+        113,
+        18,
+        198,
+        36,
+        124,
+        101,
+        1,
+        11,
+        88,
+        60,
+        23,
+        63,
+        177,
+        144,
+        247,
+        88,
+        176,
+        116,
+        242,
+        59,
+        142,
+        109,
+        149,
+        61,
+        164,
+        249,
+        53
+    ])
+}
 // The Signaling Client
 const client = new SignalClient(window.origin)
 // WebRTC Configuration
@@ -18,6 +82,18 @@ const RTC_CONFIGURATION = {
                 'stun:stun1.l.google.com:19302',
                 'stun:stun2.l.google.com:19302',
             ],
+        },
+        {
+            urls: [
+                "turn:global.relay.metered.ca:80",
+                "turn:global.relay.metered.ca:80?transport=tcp",
+                "turn:global.relay.metered.ca:443",
+                "turns:global.relay.metered.ca:443?transport=tcp"
+            ],
+            // default username and credential when the turn server doesn't
+            // use auth, the client still requires a value
+            username: import.meta.env.VITE_TURN_USERNAME || 'username',
+            credential: import.meta.env.VITE_TURN_CREDENTIAL || 'credential',
         },
     ],
     iceCandidatePoolSize: 10,
@@ -60,7 +136,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 /**
  * Send a Message to the remote client
  */
-function sendMessage(){
+function sendMessage() {
     const messages = document.querySelector('.messages') as HTMLDivElement
     const message = document.querySelector('#message') as HTMLInputElement
     dc.send(message.value)
@@ -71,7 +147,7 @@ function sendMessage(){
  * Handle the data channel
  * @param dataChannel
  */
-function handleDataChannel(dataChannel: RTCDataChannel){
+function handleDataChannel(dataChannel: RTCDataChannel) {
     globalThis.dc = dataChannel
     const messagesContainer = document.querySelector('.message-container') as HTMLDivElement
     messagesContainer.classList.remove('hidden')
@@ -139,12 +215,12 @@ function handleAlternativeRequestId() {
 
 // Globals
 declare global {
-   var toggle: ()=> void
-   var handleOfferClient: ()=>void
-   var handleSignChallenge: ()=>void
-   var handleAlternativeRequestId: ()=>void
-   var sendMessage: ()=>void
-   var dc: RTCDataChannel
+    var toggle: () => void
+    var handleOfferClient: () => void
+    var handleSignChallenge: () => void
+    var handleAlternativeRequestId: () => void
+    var sendMessage: () => void
+    var dc: RTCDataChannel
 }
 globalThis.toggle = toggle
 globalThis.handleOfferClient = handleOfferClient
