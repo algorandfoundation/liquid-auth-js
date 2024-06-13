@@ -124,10 +124,10 @@
       ]
     ],
     "branches": [
-      "main",
+      "release/*",
       {
-        "name": "develop",
-        "prerelease": "beta"
+        "name": "main",
+        "prerelease": "canary"
       }
     ]
   }
