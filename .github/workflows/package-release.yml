@@ -1,7 +1,7 @@
 name: Publish Package
 on:
   push:
-    branches: ['main', 'develop']
+    branches: ['main', 'release/*']
 jobs:
   npm-publish:
     runs-on: ubuntu-latest
@@ -24,11 +24,11 @@ jobs:
           NPM_CONFIG_REGISTRY: 'https://npm.pkg.github.com'
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Merge main -> develop
+      - name: Merge Release -> Trunk
         uses: devmasx/merge-branch@854d3ac71ed1e9deb668e0074781b81fdd6e771f
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/release/1.x'
         with:
           type: now
-          from_branch: main
-          target_branch: develop
+          from_branch: release/1.x
+          target_branch: main
           github_token: ${{ secrets.GITHUB_TOKEN }}
