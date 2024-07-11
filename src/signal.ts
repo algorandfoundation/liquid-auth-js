@@ -2,10 +2,11 @@ import { io, ManagerOptions, Socket, SocketOptions } from 'socket.io-client';
 import QRCodeStyling, { Options as QRCodeOptions } from 'qr-code-styling';
 import { EventEmitter } from 'eventemitter3';
 import { attestation, DEFAULT_ATTESTATION_OPTIONS } from './attestation.js';
+import { v7 as uuidv7 } from 'uuid';
 
 export type LinkMessage = {
   credId?: string;
-  requestId: string | number;
+  requestId: string;
   wallet: string;
 };
 export const REQUEST_IS_MISSING_MESSAGE = 'Request id is required';
@@ -61,10 +62,11 @@ export const DEFAULT_QR_CODE_OPTIONS: QRCodeOptions = {
 };
 
 export async function generateQRCode(
-  { requestId, url }: { requestId: any; url: string },
+  { requestId, url }: { requestId?: string; url: string },
   qrCodeOptions: QRCodeOptions = DEFAULT_QR_CODE_OPTIONS,
 ) {
   if (typeof requestId === 'undefined')
+    console.log('generateQRCode');
     throw new Error(REQUEST_IS_MISSING_MESSAGE);
   qrCodeOptions.data = generateDeepLink(url, requestId);
 
@@ -81,11 +83,12 @@ export async function generateQRCode(
  * @param {string} origin
  * @param requestId
  */
-export function generateDeepLink(origin: string, requestId: any) {
+export function generateDeepLink(origin: string, requestId: string) {
   if (typeof origin !== 'string') {
     throw new Error(ORIGIN_IS_MISSING_MESSAGE);
   }
-  if (typeof requestId === 'undefined') {
+  if (typeof requestId !== 'string') {
+    console.log('generateDeepLink');
     throw new Error(REQUEST_IS_MISSING_MESSAGE);
   }
   return `liquid://${origin.replace('https://', '')}/?requestId=${requestId}`;
@@ -97,7 +100,7 @@ export class SignalClient extends EventEmitter {
   private url: string;
   type: 'offer' | 'answer';
   private authenticated: boolean = false;
-  private requestId: any | undefined;
+  private requestId: string | undefined;
   peerClient: RTCPeerConnection | undefined;
   private qrCodeOptions: QRCodeOptions = DEFAULT_QR_CODE_OPTIONS;
   socket: Socket;
@@ -124,9 +127,8 @@ export class SignalClient extends EventEmitter {
     });
   }
 
-  static generateRequestId() {
-    //TODO: replace with toBase64URL(nacl.randomBytes(nacl.sign.seedLength)
-    return Math.random() as any;
+  static generateRequestId(): string {
+    return uuidv7()
   }
   attestation(
     onChallenge: (challenge: Uint8Array) => any,
@@ -147,6 +149,7 @@ export class SignalClient extends EventEmitter {
    */
   async qrCode() {
     if (typeof this.requestId === 'undefined')
+      console.log('qrCode');
       throw new Error(REQUEST_IS_MISSING_MESSAGE);
     return generateQRCode(
       { requestId: this.requestId, url: this.url },
@@ -158,11 +161,12 @@ export class SignalClient extends EventEmitter {
    * Create a Deep Link URI
    * @param requestId
    */
-  deepLink(requestId: any) {
+  deepLink(requestId: string) {
     if (
-      typeof requestId === 'undefined' &&
+      typeof requestId !== 'string' &&
       typeof this.requestId === 'undefined'
     ) {
+      console.log('deepLink');
       throw new Error(REQUEST_IS_MISSING_MESSAGE);
     }
     return generateDeepLink(this.url, requestId || this.requestId);
@@ -187,7 +191,7 @@ export class SignalClient extends EventEmitter {
    * @param config
    */
   async peer(
-    requestId: any,
+    requestId: string | undefined,
     type: 'offer' | 'answer',
     config: RTCConfiguration = {
       iceServers: [
@@ -292,7 +296,7 @@ export class SignalClient extends EventEmitter {
    * Await for a link message for a given requestId
    * @param requestId
    */
-  async link(requestId: any) {
+  async link(requestId: string) {
     if (typeof this.requestId !== 'undefined')
       throw new Error(REQUEST_IN_PROCESS_MESSAGE);
     this.requestId = requestId;

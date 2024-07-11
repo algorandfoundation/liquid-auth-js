@@ -173,6 +173,7 @@ function handleDataChannel(dataChannel: RTCDataChannel) {
  */
 async function handleOfferClient() {
     // Peer to the remote client and await their offer
+    console.log('requestId', requestId);
     client.peer(requestId, 'offer', RTC_CONFIGURATION).then(handleDataChannel)
     // Once the link message is received by the remote wallet, hide the offer
     client.on('link-message', () => {

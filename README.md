@@ -29,7 +29,7 @@ await client.attestation(async (challenge: Uint8Array) => ({
     type: 'algorand', // The type of signature and public key
     address: testAccount.addr, // The address of the account
     signature: toBase64URL(nacl.sign.detached(challenge, testAccount.sk)), // The signature of the challenge
-    requestId: 12345, // Optionally authenticate a remote peer
+    requestId: '019097ff-bb8d-7f68-9062-89543625aca5', // Optionally authenticate a remote peer
     device: 'Demo Web Wallet' // Optional device name
 }))
 ```
@@ -37,14 +37,14 @@ await client.attestation(async (challenge: Uint8Array) => ({
 ```typescript
 await client.assertion(
     credentialId, // Some known credential ID
-    {requestId: 12345} // Optional requestId to link
+    {requestId: '019097ff-bb8d-7f68-9062-89543625aca5'} // Optional requestId to link
 )
 ```
 #### Peering with a remote client
 
 ```typescript
 // Create the Peer Connection and await the remote client's answer
-client.peer(12345, 'answer').then((dataChannel: RTCDataChannel)=>{
+client.peer('019097ff-bb8d-7f68-9062-89543625aca5', 'answer').then((dataChannel: RTCDataChannel)=>{
     // Handle the data channel
     dataChannel.onmessage = (event: MessageEvent) => {
         console.log(event.data)
@@ -82,7 +82,7 @@ interface SignalClient {
   /**
    * Generate a Request ID
    */
-  generateRequestId(): any;
+  generateRequestId(): string;
 
   attestation(...args: any[]): Promise<any>;
   assertion(...args: any[]): Promise<any>;
@@ -91,7 +91,7 @@ interface SignalClient {
    * Top level Friendly interface for signaling
    * @param args
    */
-  peer(requestId: any, type: 'offer' | 'answer', config?: RTCConfiguration): Promise<void>;
+  peer(requestId: string, type: 'offer' | 'answer', config?: RTCConfiguration): Promise<void>;
 
   /**
    * Link a Request ID to this client

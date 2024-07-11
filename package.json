@@ -75,11 +75,14 @@
     "eventemitter3": "^5.0.1",
     "qr-code-styling": "*",
     "socket.io-client": "^4.7.5",
-    "tweetnacl": "^1.0.3"
+    "tweetnacl": "^1.0.3",
+    "uuid": "^10.0.0"
   },
   "jest": {
     "preset": "ts-jest",
-    "extensionsToTreatAsEsm": [".ts"],
+    "extensionsToTreatAsEsm": [
+      ".ts"
+    ],
     "moduleNameMapper": {
       "^(\\.{1,2}/.*)\\.js$": "$1"
     },
