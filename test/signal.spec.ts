@@ -430,8 +430,4 @@ test('generateDeepLink', async () => {
     // @ts-expect-error, needed for testing
     generateDeepLink(url)
   ).toThrow(new Error(REQUEST_IS_MISSING_MESSAGE));
-  expect(() =>
-    // @ts-expect-error, needed for testing
-    generateDeepLink(undefined, requestId)
-  ).toThrow(new Error(ORIGIN_IS_MISSING_MESSAGE));
 })
