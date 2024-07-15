@@ -66,7 +66,6 @@ export async function generateQRCode(
   qrCodeOptions: QRCodeOptions = DEFAULT_QR_CODE_OPTIONS,
 ) {
   if (typeof requestId === 'undefined')
-    console.log('generateQRCode');
     throw new Error(REQUEST_IS_MISSING_MESSAGE);
   qrCodeOptions.data = generateDeepLink(url, requestId);
 
@@ -88,7 +87,6 @@ export function generateDeepLink(origin: string, requestId: string) {
     throw new Error(ORIGIN_IS_MISSING_MESSAGE);
   }
   if (typeof requestId !== 'string') {
-    console.log('generateDeepLink');
     throw new Error(REQUEST_IS_MISSING_MESSAGE);
   }
   return `liquid://${origin.replace('https://', '')}/?requestId=${requestId}`;
@@ -149,7 +147,6 @@ export class SignalClient extends EventEmitter {
    */
   async qrCode() {
     if (typeof this.requestId === 'undefined')
-      console.log('qrCode');
       throw new Error(REQUEST_IS_MISSING_MESSAGE);
     return generateQRCode(
       { requestId: this.requestId, url: this.url },
@@ -166,7 +163,6 @@ export class SignalClient extends EventEmitter {
       typeof requestId !== 'string' &&
       typeof this.requestId === 'undefined'
     ) {
-      console.log('deepLink');
       throw new Error(REQUEST_IS_MISSING_MESSAGE);
     }
     return generateDeepLink(this.url, requestId || this.requestId);
