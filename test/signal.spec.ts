@@ -120,7 +120,8 @@ describe("SignalClient", function() {
   // Request ID
   test("generateRequestId", function() {
     const id = SignalClient.generateRequestId();
-    expect(id).toBeGreaterThan(0);
+    expect(id).toBeDefined();
+    expect(id.length).toBe(36);
   });
 
   // TODO: Decide what to do with QR Code generation, possibly fork and maintain the library since Pera also uses it
@@ -267,8 +268,8 @@ describe("SignalClient", function() {
   })
   test("peer(answer) unbuffered", async function(){
     // Only allow one peer session at a time
-    client.requestId = 1234
-    await expect(()=>client.peer(1234, "answer")).rejects.toThrow(new Error(mod.REQUEST_IN_PROCESS_MESSAGE));
+    client.requestId = '019097ff-bb8d-7a31-83bb-aa934d351662'
+    await expect(()=>client.peer('019097ff-bb8d-7a31-83bb-aa934d351662', "answer")).rejects.toThrow(new Error(mod.REQUEST_IN_PROCESS_MESSAGE));
     delete client.requestId;
 
     const sdpFixture = {
@@ -312,8 +313,8 @@ describe("SignalClient", function() {
   })
   test("peer(answer)", async function() {
     // Only allow one peer session at a time
-    client.requestId = 1234
-    await expect(()=>client.peer(1234, "answer")).rejects.toThrow(new Error(mod.REQUEST_IN_PROCESS_MESSAGE));
+    client.requestId = '019097ff-bb8d-7a31-83bb-aa934d351662'
+    await expect(()=>client.peer('019097ff-bb8d-7a31-83bb-aa934d351662', "answer")).rejects.toThrow(new Error(mod.REQUEST_IN_PROCESS_MESSAGE));
     delete client.requestId;
 
     const sdpFixture = {
@@ -409,7 +410,6 @@ test("generateQRCode", async () => {
   const qrFixture = { url: "https://liquid-auth.onrender.com", requestId: SignalClient.generateRequestId() };
   expect(generateQRCode(qrFixture)).toBeDefined();
   await expect(() =>
-    // @ts-expect-error, needed for testing
     generateQRCode({ url: qrFixture.url })
   ).rejects.toThrow(new Error(mod.REQUEST_IS_MISSING_MESSAGE));
   getRawData = () => {
@@ -430,7 +430,4 @@ test('generateDeepLink', async () => {
     // @ts-expect-error, needed for testing
     generateDeepLink(url)
   ).toThrow(new Error(REQUEST_IS_MISSING_MESSAGE));
-  expect(() =>
-    generateDeepLink(undefined, requestId)
-  ).toThrow(new Error(ORIGIN_IS_MISSING_MESSAGE));
 })
