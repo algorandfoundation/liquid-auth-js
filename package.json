@@ -37,7 +37,7 @@
     "lint": "eslint --fix src",
     "test": "tsc && node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:cov": "tsc && node --experimental-vm-modules node_modules/jest/bin/jest.js --collectCoverage",
-    "release": "semantic-release --dry-run",
+    "release": "semantic-release",
     "postinstall": "tsc"
   },
   "author": "Algorand Foundation",
