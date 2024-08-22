@@ -6,28 +6,28 @@
   "type": "module",
   "exports": {
     ".": {
-      "default": "./lib/index.js",
-      "types": "./lib/index.d.ts"
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
     },
     "./attestation": {
-      "default": "./lib/attestation.js",
-      "types": "./lib/attestation.d.ts"
+      "types": "./lib/attestation.d.ts",
+      "default": "./lib/attestation.js"
     },
     "./assertion": {
-      "default": "./lib/assertion.js",
-      "types": "./lib/assertion.d.ts"
+      "types": "./lib/assertion.d.ts",
+      "default": "./lib/assertion.js"
     },
     "./signal": {
-      "default": "./lib/signal.js",
-      "types": "./lib/signal.d.ts"
+      "types": "./lib/signal.d.ts",
+      "default": "./lib/signal.js"
     },
     "./errors": {
-      "default": "./lib/errors.js",
-      "types": "./lib/errors.d.ts"
+      "types": "./lib/errors.d.ts",
+      "default": "./lib/errors.js"
     },
     "./encoding": {
-      "default": "./lib/encoding.js",
-      "types": "./lib/encoding.d.ts"
+      "types": "./lib/encoding.d.ts",
+      "default": "./lib/encoding.js"
     }
   },
   "scripts": {
