@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 
-const DEFAULT_PROXY_URL = 'http://localhost:3000';
-const DEFAULT_WSS_PROXY_URL = 'ws://localhost:3000';
+const DEFAULT_PROXY_URL = 'http://192.168.1.17:5173';
+const DEFAULT_WSS_PROXY_URL = 'ws://192.168.1.17:5173';
 
 export default defineConfig({
   server: {

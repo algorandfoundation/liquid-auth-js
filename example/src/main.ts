@@ -1,6 +1,13 @@
 import './style.css'
 import * as nacl from 'tweetnacl'
 import { SignalClient, toBase64URL } from "@algorandfoundation/liquid-client";
+import {
+    Algodv2,
+    decodeUnsignedTransaction,
+    encodeUnsignedTransaction,
+    makePaymentTxnWithSuggestedParamsFromObject
+} from "algosdk";
+import { decode, encode } from "cbor-x";
 
 const testAccount = {
     addr: "IKMUKRWTOEJMMJD4MUAQWWB4C473DEHXLCYHJ4R3RZWZKPNE7E2ZTQ7VD4",
@@ -94,19 +101,7 @@ const RTC_CONFIGURATION = {
             ],
             username: import.meta.env.VITE_NODELY_TURN_USERNAME || 'username',
             credential: import.meta.env.VITE_NODELY_TURN_CREDENTIAL || 'credential',
-        },
-        {
-            urls: [
-                "turn:global.relay.metered.ca:80",
-                "turn:global.relay.metered.ca:80?transport=tcp",
-                "turn:global.relay.metered.ca:443",
-                "turns:global.relay.metered.ca:443?transport=tcp"
-            ],
-            // default username and credential when the turn server doesn't
-            // use auth, the client still requires a value
-            username: import.meta.env.VITE_TURN_USERNAME || 'username',
-            credential: import.meta.env.VITE_TURN_CREDENTIAL || 'credential',
-        },
+        }
     ],
     iceCandidatePoolSize: 10,
 }
@@ -148,10 +143,48 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 /**
  * Send a Message to the remote client
  */
-function sendMessage() {
+async function sendMessage() {
     const messages = document.querySelector('.messages') as HTMLDivElement
     const message = document.querySelector('#message') as HTMLInputElement
-    dc.send(message.value)
+    const count = 13370;
+    let txns= []
+    const encoder = new TextEncoder();
+    const algod = new Algodv2(
+      "",
+      "https://testnet-api.algonode.cloud",
+      443
+    )
+    const suggestedParams = await algod.getTransactionParams().do();
+    for(var i = 0; i < count; i++){
+        txns.push(encodeUnsignedTransaction(makePaymentTxnWithSuggestedParamsFromObject({
+            from: testAccount.addr,
+            suggestedParams,
+            to: testAccount.addr,
+            amount: 0,
+            note: encoder.encode(`Transaction ${i}`)
+        })))
+    }
+    console.log('Created transactions')
+    const encoded = encode(txns)
+    console.log('Encoded transactions', encoded)
+
+    console.log(encoded.length > 256000)
+    const chunkSize = 256000;
+    dc.send(JSON.stringify({"length": encoded.length, chunkSize: chunkSize, timestamp: Date.now()}))
+    for (let i = 0; i < encoded.length; i += chunkSize) {
+        dc.send(encoded.slice(i, i + chunkSize))
+        // do whatever
+    }
+
+    // if(encoded.length > dc.bu
+    dc.onbufferedamountlow = () => {
+        console.log('Buffered Amount Low', dc.bufferedAmount)
+    }
+    // for await (let binaryChunk of encodeAsAsyncIterable(txns)){
+    //     // progressively get binary chunks as asynchronous data source is encoded
+    //     dc.send(binaryChunk)
+    // }
+    // dc.send(message.value)
     messages.innerHTML += `<p class="local-message">${message.value}</p>`
     message.value = ''
 }
@@ -161,11 +194,39 @@ function sendMessage() {
  */
 function handleDataChannel(dataChannel: RTCDataChannel) {
     globalThis.dc = dataChannel
+    dc.bufferedAmountLowThreshold = 1000
+    dc.binaryType = 'arraybuffer'
     const messagesContainer = document.querySelector('.message-container') as HTMLDivElement
     messagesContainer.classList.remove('hidden')
     const messages = document.querySelector('.messages') as HTMLDivElement
+    let data: number[] = [];
+    let length = 0;
+    let received = 0;
+    let isLoading = false;
+    let start = Date.now()
     dc.onmessage = (e) => {
-        messages.innerHTML += `<p class="remote-message">${e.data}</p>`
+        if(typeof e.data === 'string'){
+            let message = JSON.parse(e.data)
+            length = message.length
+            isLoading = true
+            start = message.timestamp
+        } else if(isLoading){
+            data = [...data, ...new Uint8Array(e.data)]
+            received += e.data.byteLength
+            if(received >= length){
+                console.log('Received all data', Date.now() - start)
+                //@ts-expect-error, we know more than tsc
+                const decoded = decode(new Uint8Array(data)).map(txn=>decodeUnsignedTransaction(txn))
+                const delta = Date.now() - start
+                const deltaSeconds = delta/1000
+                const tps = Math.round(decoded.length/deltaSeconds)
+                messages.innerHTML += `<p class="remote-message">That's ${decoded.length} Transactions in ${delta/1000}s. A causual ${tps} TPS 🤯</p>`
+                isLoading = false
+                data = []
+                received = 0
+                length = 0
+            }
+        }
     }
 }
 /**
@@ -201,7 +262,7 @@ async function handleOfferClient() {
 async function handleSignChallenge() {
     // Sign in to the service with a new credential
     await client.attestation(async (challenge: Uint8Array) => ({
-        requestId: parseFloat(altRequestId),
+        requestId: altRequestId,
         origin: window.origin,
         type: 'algorand',
         address: testAccount.addr,

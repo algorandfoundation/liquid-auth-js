@@ -215,6 +215,7 @@ export class SignalClient extends EventEmitter {
       type === 'offer' && (await this.link(requestId));
       // Listen for Local Candidates
       this.peerClient.onicecandidate = (event) => {
+        console.log('onicecandidate', event);
         if (event.candidate) {
           this.emit(`${this.type}-candidate`, event.candidate.toJSON());
           this.socket.emit(`${this.type}-candidate`, event.candidate.toJSON());
@@ -246,10 +247,12 @@ export class SignalClient extends EventEmitter {
       };
       // Handle Session Descriptions
       if (type === 'offer') {
+        console.log('offer');
         const sdp = await this.signal(type);
         await this.peerClient.setRemoteDescription(sdp);
         const answer = await this.peerClient.createAnswer();
         await this.peerClient.setLocalDescription(answer);
+        console.log('candidatesBuffer', candidatesBuffer);
         if (candidatesBuffer.length > 0) {
           await Promise.all(
             candidatesBuffer.map(async (candidate) => {
@@ -264,13 +267,16 @@ export class SignalClient extends EventEmitter {
         this.emit(`${this.type}-description`, answer.sdp);
         this.socket.emit(`${this.type}-description`, answer.sdp);
       } else {
+        console.log('answer')
         const dataChannel = this.peerClient.createDataChannel('liquid');
         const localSdp = await this.peerClient.createOffer();
         await this.peerClient.setLocalDescription(localSdp);
+        console.log('localSdp', localSdp);
         this.socket.emit(`${this.type}-description`, localSdp.sdp);
         this.emit(`${this.type}-description`, localSdp.sdp);
         const sdp = await this.signal(type);
         await this.peerClient.setRemoteDescription(sdp);
+        console.log('candidatesBuffer', candidatesBuffer);
         if (candidatesBuffer.length > 0) {
           await Promise.all(
             candidatesBuffer.map(async (candidate) => {
@@ -318,6 +324,7 @@ export class SignalClient extends EventEmitter {
    * @param type
    */
   async signal(type: 'offer' | 'answer') {
+    console.log('signal', type);
     if (!this.authenticated) throw new Error(UNAUTHENTICATED_MESSAGE);
     this.emit('signal', { type });
     return new Promise<RTCSessionDescriptionInit>((resolve) => {

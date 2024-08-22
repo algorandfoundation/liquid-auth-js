@@ -13,6 +13,8 @@
     "vite": "^5.2.0"
   },
   "dependencies": {
-    "@algorandfoundation/liquid-client": "file:.."
+    "@algorandfoundation/liquid-client": "file:..",
+    "algosdk": "^2.9.0",
+    "cbor-x": "^1.6.0"
   }
 }
