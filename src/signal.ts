@@ -1,5 +1,7 @@
 import { io, ManagerOptions, Socket, SocketOptions } from 'socket.io-client';
-import QRCodeStyling, { Options as QRCodeOptions } from 'qr-code-styling';
+import QRCodeStyling, {
+  Options as QRCodeOptions,
+} from '@algorandfoundation/qr-code-styling';
 import { EventEmitter } from 'eventemitter3';
 import { attestation, DEFAULT_ATTESTATION_OPTIONS } from './attestation.js';
 import { v7 as uuidv7 } from 'uuid';
@@ -126,7 +128,7 @@ export class SignalClient extends EventEmitter {
   }
 
   static generateRequestId(): string {
-    return uuidv7()
+    return uuidv7();
   }
   attestation(
     onChallenge: (challenge: Uint8Array) => any,

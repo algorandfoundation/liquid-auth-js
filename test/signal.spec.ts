@@ -8,7 +8,7 @@ let getRawData = () => {
   });
 };
 // Mock QR Code
-jest.unstable_mockModule("qr-code-styling", () => {
+jest.unstable_mockModule("@algorandfoundation/qr-code-styling", () => {
   return {
     default: class QRCodeStyling {
       constructor(options) {
