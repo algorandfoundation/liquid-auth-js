@@ -17,7 +17,7 @@ import {SignalClient} from '@algorandfoundation/liquid-client';
 const client = new SignalClient(window.origin);
 ```
 
-See the [liquid-auth documentation](https://github.com/algorandfoundation/liquid-auth) for more information on the API.
+See the [liquid-auth documentation](https://liquidauth.com/clients/browser/introduction/) for more information on the API.
 
 ## Browser Wallet Integration
 
