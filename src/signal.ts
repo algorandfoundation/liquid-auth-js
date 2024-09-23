@@ -204,17 +204,25 @@ export class SignalClient extends EventEmitter {
       iceCandidatePoolSize: 10,
     },
   ): Promise<RTCDataChannel> {
-    if (typeof this.requestId !== 'undefined')
+    if (
+      typeof this.requestId !== 'undefined' &&
+      typeof requestId !== 'undefined'
+    ) {
       throw new Error(REQUEST_IN_PROCESS_MESSAGE);
-
+    }
+    if (typeof requestId === 'undefined') {
+      this.authenticated = true;
+    }
     return new Promise(async (resolve) => {
       let candidatesBuffer = [];
       // Create Peer Connection
       this.peerClient = new RTCPeerConnection(config);
       globalThis.peerClient = this.peerClient;
       this.type = type === 'offer' ? 'answer' : 'offer';
-      // Wait for a link message
-      type === 'offer' && (await this.link(requestId));
+      // Wait for a link message, only on initial connections
+      type === 'offer' &&
+        typeof requestId !== 'undefined' &&
+        (await this.link(requestId).then(console.log));
       // Listen for Local Candidates
       this.peerClient.onicecandidate = (event) => {
         if (event.candidate) {
