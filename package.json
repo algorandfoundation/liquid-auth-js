@@ -4,6 +4,9 @@
   "description": "Connect to a Liquid Auth service",
   "main": "./lib/index.js",
   "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
     ".": {
       "types": "./lib/index.d.ts",
@@ -116,7 +119,7 @@
             "CHANGELOG.md",
             "package.json"
           ],
-          "message": "chore(release): Liquid Client \n\n${nextRelease.notes}"
+          "message": "chore(release): [skip ci] Liquid Client \n\n${nextRelease.notes}"
         }
       ],
       [
