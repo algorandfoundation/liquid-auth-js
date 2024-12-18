@@ -1,6 +1,6 @@
 {
   "name": "@algorandfoundation/liquid-client",
-  "version": "1.0.0-canary.2",
+  "version": "1.0.0-canary.3",
   "description": "Connect to a Liquid Auth service",
   "main": "./lib/index.js",
   "type": "module",

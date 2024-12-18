@@ -1,3 +1,10 @@
+# [1.0.0-canary.3](https://github.com/algorandfoundation/liquid-auth-js/compare/v1.0.0-canary.2...v1.0.0-canary.3) (2024-12-18)
+
+
+### Bug Fixes
+
+* publish configuration and skip actions on release commit ([80a437a](https://github.com/algorandfoundation/liquid-auth-js/commit/80a437a66ce248bc842f9da2ae7c8b4f74e829a9))
+
 # [1.0.0-canary.2](https://github.com/algorandfoundation/liquid-auth-js/compare/v1.0.0-canary.1...v1.0.0-canary.2) (2024-12-18)
 
 
