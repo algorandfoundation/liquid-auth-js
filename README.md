@@ -1,7 +1,73 @@
 # Overview
 
-Client JSON-RPC interfaces should be generated from OpenAPI 3.0 specifications.
-All clients should mirror the same interfaces and include the same parameters (as much as possible).
+This project is an example Client for TypeScript for using the Liquid-Auth API.
+
+# Getting Started
+
+## Install
+
+```bash
+npm install algorandfoundation/liquid-auth-js --save
+````
+
+# Usage
+
+```typescript
+import {SignalClient} from '@algorandfoundation/liquid-client';
+const client = new SignalClient(window.origin);
+```
+
+See the [liquid-auth documentation](https://liquidauth.com/clients/browser/introduction/) for more information on the API.
+
+## Browser Wallet Integration
+
+#### Create a new account and passkey
+```typescript
+const testAccount = algosdk.generateAccount();
+// Sign in to the service with a new credential and wallet
+await client.attestation(async (challenge: Uint8Array) => ({
+    type: 'algorand', // The type of signature and public key
+    address: testAccount.addr, // The address of the account
+    signature: toBase64URL(nacl.sign.detached(challenge, testAccount.sk)), // The signature of the challenge
+    requestId: '019097ff-bb8d-7f68-9062-89543625aca5', // Optionally authenticate a remote peer
+    device: 'Demo Web Wallet' // Optional device name
+}))
+```
+#### Sign in with an existing account
+```typescript
+await client.assertion(
+    credentialId, // Some known credential ID
+    {requestId: '019097ff-bb8d-7f68-9062-89543625aca5'} // Optional requestId to link
+)
+```
+#### Peering with a remote client
+
+```typescript
+// Create the Peer Connection and await the remote client's answer
+client.peer('019097ff-bb8d-7f68-9062-89543625aca5', 'answer').then((dataChannel: RTCDataChannel)=>{
+    // Handle the data channel
+    dataChannel.onmessage = (event: MessageEvent) => {
+        console.log(event.data)
+    }
+})
+```
+
+## Dapp Integration
+
+```typescript
+const requestId = SignalClient.generateRequestId();
+client
+    .peer(requestId, 'offer')
+    .then((dataChannel: RTCDataChannel)=>{
+        // Handle the data channel
+        dataChannel.onmessage = (event: MessageEvent) => {
+            console.log(event.data)
+        }
+    })
+const blob = await client.qrCode()
+```
+
+## Interfaces
 
 ```typescript
 interface SignalClient {
@@ -16,13 +82,16 @@ interface SignalClient {
   /**
    * Generate a Request ID
    */
-  generateRequestId(): any;
+  generateRequestId(): string;
 
+  attestation(...args: any[]): Promise<any>;
+  assertion(...args: any[]): Promise<any>;
+  
   /**
    * Top level Friendly interface for signaling
    * @param args
    */
-  peer(requestId: any, type: 'offer' | 'answer', config?: RTCConfiguration): Promise<void>;
+  peer(requestId: string, type: 'offer' | 'answer', config?: RTCConfiguration): Promise<void>;
 
   /**
    * Link a Request ID to this client

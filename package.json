@@ -1,11 +1,137 @@
 {
-  "name": "liquid-auth-js",
-  "version": "1.0.0",
-  "description": "Client JSON-RPC interfaces are generated from OpenAPI 3.0 specifications. All clients should mirror the same interfaces and include the same parameters (as much as possible).",
-  "private": true,
-  "workspaces": [
-    "packages/*"
-  ],
-  "author": "",
-  "license": "MIT"
+  "name": "@algorandfoundation/liquid-client",
+  "version": "0.0.1",
+  "description": "Connect to a Liquid Auth service",
+  "main": "./lib/index.js",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./attestation": {
+      "types": "./lib/attestation.d.ts",
+      "default": "./lib/attestation.js"
+    },
+    "./assertion": {
+      "types": "./lib/assertion.d.ts",
+      "default": "./lib/assertion.js"
+    },
+    "./signal": {
+      "types": "./lib/signal.d.ts",
+      "default": "./lib/signal.js"
+    },
+    "./errors": {
+      "types": "./lib/errors.d.ts",
+      "default": "./lib/errors.js"
+    },
+    "./encoding": {
+      "types": "./lib/encoding.d.ts",
+      "default": "./lib/encoding.js"
+    }
+  },
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "tsc",
+    "build:docs": "typedoc --plugin typedoc-plugin-markdown --out docs src src/client",
+    "lint": "eslint --fix src",
+    "test": "tsc && node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:cov": "tsc && node --experimental-vm-modules node_modules/jest/bin/jest.js --collectCoverage",
+    "release": "semantic-release",
+    "postinstall": "tsc"
+  },
+  "author": "Algorand Foundation",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^12.0.0",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^10.0.3",
+    "@semantic-release/npm": "^12.0.0",
+    "@semantic-release/release-notes-generator": "^13.0.0",
+    "@swc/register": "^0.1.10",
+    "@types/chai": "^4.3.14",
+    "@types/jest": "^29.5.12",
+    "@types/qrcode": "^1.5.5",
+    "@typescript-eslint/eslint-plugin": "^7.8.0",
+    "@typescript-eslint/parser": "^7.8.0",
+    "c8": "^9.1.0",
+    "chai": "^5.1.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.3",
+    "eslint-plugin-tsdoc": "^0.2.17",
+    "jest": "^29.7.0",
+    "semantic-release": "^23.0.8",
+    "semantic-release-monorepo": "^8.0.2",
+    "socket.io-mock": "^1.3.2",
+    "ts-jest": "^29.1.4",
+    "typedoc": "^0.25.13",
+    "typedoc-plugin-markdown": "^4.0.0-next.55",
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "@algorandfoundation/qr-code-styling": "github:algorandfoundation/qr-code-styling",
+    "canvas": "^2.11.2",
+    "eventemitter3": "^5.0.1",
+    "socket.io-client": "^4.7.5",
+    "tweetnacl": "^1.0.3",
+    "uuid": "^10.0.0"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "extensionsToTreatAsEsm": [
+      ".ts"
+    ],
+    "moduleNameMapper": {
+      "^(\\.{1,2}/.*)\\.js$": "$1"
+    },
+    "transform": {
+      "^.+\\.tsx?$": [
+        "ts-jest",
+        {
+          "useESM": true
+        }
+      ]
+    },
+    "collectCoverageFrom": [
+      "lib/**/*.js"
+    ],
+    "coveragePathIgnorePatterns": [
+      "lib/index.js",
+      "lib/sha512.js",
+      "lib/hi-base32.js"
+    ]
+  },
+  "release": {
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      "@semantic-release/changelog",
+      "@semantic-release/npm",
+      [
+        "@semantic-release/git",
+        {
+          "assets": [
+            "CHANGELOG.md",
+            "package.json"
+          ],
+          "message": "chore(release): Liquid Client \n\n${nextRelease.notes}"
+        }
+      ],
+      [
+        "@semantic-release/github",
+        {
+          "successComment": false
+        }
+      ]
+    ],
+    "branches": [
+      "release/*",
+      {
+        "name": "main",
+        "prerelease": "canary"
+      }
+    ]
+  }
 }
