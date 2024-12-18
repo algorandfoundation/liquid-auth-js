@@ -1,3 +1,10 @@
+# [1.0.0-canary.2](https://github.com/algorandfoundation/liquid-auth-js/compare/v1.0.0-canary.1...v1.0.0-canary.2) (2024-12-18)
+
+
+### Bug Fixes
+
+* license copyrite ([48ca188](https://github.com/algorandfoundation/liquid-auth-js/commit/48ca188fc59b99b7bc82ec8eddd2acd37d264b53))
+
 # 1.0.0-canary.1 (2024-12-18)
 
 
