@@ -6,6 +6,8 @@
  * @copyright Chen, Yi-Cyuan 2014-2024
  * @license MIT
  */
+
+// @ts-nocheck
 const INPUT_ERROR = 'input is invalid type';
 const FINALIZE_ERROR = 'finalize already called';
 
@@ -1232,80 +1234,3 @@ Sha512.prototype.copyTo = function (hash) {
     hash.blocks[i] = this.blocks[i];
   }
 };
-
-function HmacSha512(key, bits, sharedMemory) {
-  var i: number;
-  const result = formatMessage(key);
-  key = result[0];
-  if (result[1]) {
-    const bytes: number[] = [];
-    const length = key.length;
-    let index = 0;
-    let code;
-    for (var i = 0; i < length; ++i) {
-      code = key.charCodeAt(i);
-      if (code < 0x80) {
-        bytes[index++] = code;
-      } else if (code < 0x800) {
-        bytes[index++] = 0xc0 | (code >>> 6);
-        bytes[index++] = 0x80 | (code & 0x3f);
-      } else if (code < 0xd800 || code >= 0xe000) {
-        bytes[index++] = 0xe0 | (code >>> 12);
-        bytes[index++] = 0x80 | ((code >>> 6) & 0x3f);
-        bytes[index++] = 0x80 | (code & 0x3f);
-      } else {
-        code =
-          0x10000 + (((code & 0x3ff) << 10) | (key.charCodeAt(++i) & 0x3ff));
-        bytes[index++] = 0xf0 | (code >>> 18);
-        bytes[index++] = 0x80 | ((code >>> 12) & 0x3f);
-        bytes[index++] = 0x80 | ((code >>> 6) & 0x3f);
-        bytes[index++] = 0x80 | (code & 0x3f);
-      }
-    }
-    key = bytes;
-  }
-
-  if (key.length > 128) {
-    key = new Sha512(bits, true).update(key).array();
-  }
-
-  const oKeyPad: number[] = [];
-  const iKeyPad: number[] = [];
-  for (var i = 0; i < 128; ++i) {
-    const b = key[i] || 0;
-    oKeyPad[i] = 0x5c ^ b;
-    iKeyPad[i] = 0x36 ^ b;
-  }
-
-  Sha512.call(this, bits, sharedMemory);
-
-  this.update(iKeyPad);
-  this.oKeyPad = oKeyPad;
-  this.inner = true;
-  this.sharedMemory = sharedMemory;
-}
-HmacSha512.prototype = new Sha512();
-
-HmacSha512.prototype.finalize = function () {
-  Sha512.prototype.finalize.call(this);
-  if (this.inner) {
-    this.inner = false;
-    const innerHash = this.array();
-    Sha512.call(this, this.bits, this.sharedMemory);
-    this.update(this.oKeyPad);
-    this.update(innerHash);
-    Sha512.prototype.finalize.call(this);
-  }
-};
-
-HmacSha512.prototype.clone = function () {
-  const hash = new HmacSha512([], this.bits, false);
-  this.copyTo(hash);
-  hash.inner = this.inner;
-  for (let i = 0; i < this.oKeyPad.length; ++i) {
-    hash.oKeyPad[i] = this.oKeyPad[i];
-  }
-  return hash;
-};
-
-export const sha512_256 = createMethod(256);

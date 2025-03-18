@@ -1,0 +1,102 @@
+---
+title: 'Browser: Peer Offer'
+sidebar:
+    order: 3
+    label: 'Peer Offer'
+---
+
+> [!CAUTION]
+>  Ensure both clients have a valid session before attempting to create peer connections.
+>  See the [Authentication](/docs/clients/browser/authentication) and [Registration]() guides for more information.
+
+
+[Peer-to-Peer](/guides/concepts/#peer-to-peer) connections can only be done using the `SignalClient`.
+Wallets are responsible for creating offers to connect.
+
+### Who is this for?
+
+- **Browser Wallets** that want to communicate with other clients
+
+## Signaling
+
+```typescript
+import { SignalClient } from "@algorandfoundation/liquid-client";
+const client = new SignalClient("<ORIGIN-FROM-QR-CODE>")
+
+// Receive the RequestID from the Peer willing to Answer this offer
+const requestId = "<UUID-FROM-QR-CODE>"
+
+// Register or create a new credential,
+// ensure the requestId is included in the call
+// ...
+
+// Create the Peer Connection and await the remote client's answer
+const dc = await client.peer(
+  // Request ID from the Peer,
+  // usually displayed as a Deep Link or QR Code
+  requestId,
+  // Type of remote client
+  'answer'
+)
+```
+
+## Data Channel
+
+Handling the Datachannel can be done with the `@algorandfoundation/provider` library
+
+```typescript
+import {encode as cborEncode, decode as cborDecode} from 'cbor-x'
+import {
+  ResponseMessageBuilder,
+  SignTransactionsResultBuilder,
+  toBase64URL,
+  fromBase64URL,
+  IARC0001Transaction,
+} from "@algorandfoundation/provider";
+
+import { randomBytes } from "tweetnacl";
+import { v7 as uuidv7 } from 'uuid';
+
+let dc: RTCDataChannel
+
+// Provider ID for your wallet
+const providerId = uuidv7()
+
+dc.onmessage = (evt: {data: string}) => {
+  const message = cborDecode(fromBase64URL(evt.data))
+  // Handle message types and create response
+
+  if(message.reference === '"arc0027:sign_transactions:request'){
+    // Make sure it's the appropriate provider
+    if(message.params.providerId !== providerId) return
+
+    const encodedTxns: IARC0001Transaction[] = message.params.txns
+
+    // Decode the transactions and add the signatures using any available method
+
+    // Fake Signature Example:
+    const stxns: string[] = [
+      // Replace with actual signatures
+      toBase64URL(randomBytes())
+    ]
+
+    // Create the Sign Transactions Result
+    const signTransactionsResult = SignTransactionsResultBuilder()
+      .addProviderId(providerId)
+      .addSignedTxns(stxns)
+      .get()
+
+    // Create the Response Message
+    const response = ResponseMessageBuilder(
+      uuidv7(), // New UUID for Response Message
+      message.id, // UUID of the Request Message
+      "arc0027:sign_transactions:response", // Reference Type of the Message
+    )
+      .addResult(signTransactionsResult)
+      .get()
+
+    // Send the Response
+    dc.send(toBase64URL(cborEncode(response)))
+  }
+}
+```

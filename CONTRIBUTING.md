@@ -59,13 +59,4 @@ Watch for changes and rebuild the library
 npm run dev
 ```
 
-### Start the simplified demo:
-
-Start the example Vite application
-```bash
-cd ./example
-npm install
-npm run dev
-```
-
 Open your browser and navigate to `https://<NGROK_STATIC_DOMAIN>` to see the example running.

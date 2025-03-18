@@ -1,0 +1,156 @@
+---
+title: "Browser: Registration"
+---
+
+Register a [Passkey](https://liquidauth.com/guides/concepts#-passkeys) with the [Service](https://liquidauth.com//server/introduction) and attest the knowledge of a KeyPair.
+
+###  Who is this for?
+
+- **Browser Wallets** that want to communicate with the service and other clients
+
+## Client
+
+Creating a passkey and registering it with the service using an instance of the `SignalClient`.
+
+`attestation` is a convenience method that handles the entire process of creating a passkey and registering it with the service.
+The caller must provide a callback that will be called when a challenge is received from the service.
+
+```typescript
+// browser.client.ts
+import * as nacl from 'tweetnacl'
+import {toBase64URL} from '@algorandfoundation/liquid-client/encoding'
+
+// Sign in to the service with a new credential and wallet
+await client.attestation(
+  // Callback when a challenge is received, return a signed challenge
+  async (challenge: Uint8Array) => ({
+    // The type of signature and public key
+    type: 'algorand',
+    // The address of the account
+    address: address,
+    // The signature of the challenge, signed by the account
+    signature: toBase64URL(nacl.sign.detached(challenge, seceretKey)),
+    // Optionally authenticate a remote peer
+    requestId: "<UUID_FROM_QR_CODE>",
+    // Optional device name
+    device: 'Demo Web Wallet'
+  })
+)
+
+```
+
+## Stateless
+
+Using the `attestation` method to create a passkey without using the `SignalClient`
+
+```typescript
+import * as nacl from 'tweetnacl'
+import {attestation} from '@algorandfoundation/liquid-client/attestation'
+import {toBase64URL} from '@algorandfoundation/liquid-client/encoding'
+
+await attestation(
+  "https://my-liquid-service.com",
+  // Callback when a challenge is received, return a signed challenge
+  async (challenge: Uint8Array) => ({
+    // The type of signature and public key
+    type: 'algorand',
+    // The address of the account
+    address: address,
+    // The signature of the challenge, signed by the account
+    signature: toBase64URL(nacl.sign.detached(challenge, seceretKey)),
+    // Optionally authenticate a remote peer
+    requestId: 12345,
+    // Optional device name
+    device: 'Demo Web Wallet'
+  })
+)
+```
+
+## Manual
+
+If you want to manually handle the process of creating a passkey, you can use the following methods and preforming
+the three steps of the process.
+
+### 🧮 Options
+
+Manually fetching the <a href="https://developer.mozilla.org/en-US/docs/Web/API/PublicKeyCredentialCreationOptions" target="_blank">PublicKeyCredentialCreationOptions</a> from the service.
+
+```typescript
+import {fetch} from '@algorandfoundation/liquid-client/attestation'
+
+const encodedOptions = await fetch.postOptions("https://my-liquid-service.com")
+```
+
+### ✨ Creating
+
+Decode the options and create a new passkey.
+
+```typescript
+import {decodeAddress, fromBase64Url} from "@algorandfoundation/liquid-client/encoding";
+
+const options = { ...encodedOptions };
+// Uint8Array of the user's id, is set as the encoded address for this type of key
+options.user.id = decodeAddress(address);
+// Must be string that is equal to the id bytes using the appropriate encoding
+options.user.name = address;
+// Friendly name to display for the user
+options.user.displayName = "Hello World";
+// Challenge from the service
+options.challenge = fromBase64Url(options.challenge);
+
+// Decode any known credentials
+if (options.excludeCredentials) {
+    for (const cred of options.excludeCredentials) {
+      cred.id = fromBase64Url(cred.id);
+    }
+}
+
+// Create the Credential
+const credential = navigator.credentials.create({
+  publicKey: options
+})
+
+```
+
+### 🔐 Liquid Extension
+
+Sign the challenge with an additional KeyPair.
+
+```typescript
+import * as nacl from 'tweetnacl'
+import {toBase64URL} from '@algorandfoundation/liquid-client/encoding'
+
+credential.clientExtensionResults = {
+    // The type of signature and public key, this is also used
+    // to determine the type of encoding for the user.id
+    type: 'algorand',
+    // The address of the account
+    address: address,
+    // The signature of the challenge, signed by the account
+    signature: toBase64URL(nacl.sign.detached(options.challenge, seceretKey)),
+    // Optionally authenticate a remote peer
+    requestId: "<UUID_FROM_QR_CODE>",
+    // Optional device name
+    device: 'Demo Web Wallet'
+}
+```
+
+### 🚚 Response
+
+Encode and submit the passkey to the service.
+
+```typescript
+import {fetch} from '@algorandfoundation/liquid-client/attestation'
+import {toBase64URL} from '@algorandfoundation/liquid-client/encoding'
+
+const result = await fetch.postResponse("https://my-liquid-service.com", {
+    id: credential.id,
+    rawId: toBase64URL(credential.rawId),
+    type: credential.type,
+    response: {
+      clientDataJSON: toBase64URL(response.clientDataJSON),
+      attestationObject: toBase64URL(response.attestationObject),
+    },
+    clientExtensionResults: credential.clientExtensionResults
+  })
+```

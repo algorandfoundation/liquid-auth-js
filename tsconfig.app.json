@@ -1,0 +1,27 @@
+{
+  "include": ["src/**/*.ts"],
+  "exclude": [
+    "node_modules",
+    "lib",
+    "dist",
+    "test/**/*.ts",
+    "**/*.test.ts",
+    "**/*.fixtures.ts",
+    "**/*.spec.ts",
+    "**/*.bench.ts"
+  ],
+  "compilerOptions": {
+    "composite": true,
+    "rootDir": "./src",
+    "outDir": "./lib",
+    "lib": ["es2022", "dom"],
+    "declaration": true,
+    "sourceMap": true,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "allowJs": true,
+    "resolveJsonModule": true,
+  },
+}

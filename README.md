@@ -1,16 +1,18 @@
-# Overview
+# @algorandfoundation/liquid-client
+
+[![CI](https://github.com/algorandfoundation/liquid-auth-js/actions/workflows/CI.yml/badge.svg)](https://github.com/algorandfoundation/liquid-auth-js/actions/workflows/CI.yml)[![Publish Package](https://github.com/algorandfoundation/liquid-auth-js/actions/workflows/package-release.yml/badge.svg)](https://github.com/algorandfoundation/liquid-auth-js/actions/workflows/package-release.yml)[![codecov](https://codecov.io/gh/algorandfoundation/liquid-auth-js/graph/badge.svg?token=AKN7VATWTO)](https://codecov.io/gh/algorandfoundation/liquid-auth-js)[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](code_of_conduct.md)
 
 This project is an example Client for TypeScript for using the Liquid-Auth API.
 
-# Getting Started
+# 🎉 Getting Started
 
-## Install
+## 📦 Install
 
 ```bash
 npm install algorandfoundation/liquid-auth-js --save
 ````
 
-# Usage
+# 📝 Usage
 
 ```typescript
 import {SignalClient} from '@algorandfoundation/liquid-client';
@@ -19,7 +21,7 @@ const client = new SignalClient(window.origin);
 
 See the [liquid-auth documentation](https://liquidauth.com/clients/browser/introduction/) for more information on the API.
 
-## Browser Wallet Integration
+## 🔐 Browser Wallet Integration
 
 #### Create a new account and passkey
 ```typescript
@@ -52,7 +54,7 @@ client.peer('019097ff-bb8d-7f68-9062-89543625aca5', 'answer').then((dataChannel:
 })
 ```
 
-## Dapp Integration
+## 🌐 Dapp Integration
 
 ```typescript
 const requestId = SignalClient.generateRequestId();
@@ -67,7 +69,7 @@ client
 const blob = await client.qrCode()
 ```
 
-## Interfaces
+## 🏗️ Interfaces
 
 ```typescript
 interface SignalClient {
@@ -126,3 +128,7 @@ interface SignalClient {
 
 }
 ```
+## ❤️ Community
+
+[![stargazers](https://reporoster.com/stars/dark/algorandfoundation/liquid-auth-js)](https://github.com/algorandfoundation/liquid-auth-js/stargazers)
+[![forks](https://reporoster.com/forks/dark/algorandfoundation/liquid-auth-js)](https://github.com/algorandfoundation/liquid-auth-js/network/members)

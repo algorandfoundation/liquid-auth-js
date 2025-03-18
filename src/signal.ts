@@ -1,66 +1,31 @@
+/**
+ * Signal Module
+ *
+ * @packageDocumentation
+ * @document ./signal.offer.guide.md
+ * @document ./signal.answer.guide.md
+ */
 import { io, ManagerOptions, Socket, SocketOptions } from 'socket.io-client';
-import QRCodeStyling, {
-  Options as QRCodeOptions,
-} from '@algorandfoundation/qr-code-styling';
+import QRCodeStyling, { Options as QRCodeOptions } from 'qr-code-styling';
 import { EventEmitter } from 'eventemitter3';
-import { attestation, DEFAULT_ATTESTATION_OPTIONS } from './attestation.js';
 import { v7 as uuidv7 } from 'uuid';
+
+import { attestation } from './attestation.js';
+import { assertion } from './assertion.js';
+
+import { DEFAULT_QR_CODE_OPTIONS } from './constants.js';
+import {
+  ORIGIN_IS_MISSING_MESSAGE,
+  REQUEST_IN_PROCESS_MESSAGE,
+  REQUEST_IS_MISSING_MESSAGE,
+  UNAUTHENTICATED_MESSAGE,
+} from './errors.js';
+import { DEFAULT_ATTESTATION_OPTIONS } from './attestation.fetch.js';
 
 export type LinkMessage = {
   credId?: string;
   requestId: string;
   wallet: string;
-};
-export const REQUEST_IS_MISSING_MESSAGE = 'Request id is required';
-export const REQUEST_IN_PROCESS_MESSAGE = 'Request in process';
-export const UNAUTHENTICATED_MESSAGE = 'Not authenticated';
-export const ORIGIN_IS_MISSING_MESSAGE = 'Origin is required';
-
-export const DEFAULT_QR_CODE_OPTIONS: QRCodeOptions = {
-  width: 500,
-  height: 500,
-  type: 'svg',
-  data: 'liquid://',
-  margin: 25,
-  imageOptions: { hideBackgroundDots: true, imageSize: 0.4, margin: 15 },
-  dotsOptions: {
-    type: 'extra-rounded',
-    gradient: {
-      type: 'radial',
-      rotation: 0,
-      colorStops: [
-        { offset: 0, color: '#9966ff' },
-        { offset: 1, color: '#332257' },
-      ],
-    },
-  },
-  backgroundOptions: { color: '#ffffff', gradient: null },
-  // TODO: Host logo publicly
-  image:
-    'https://algorandtechnologies.com/assets/media-kit/logos/logo-marks/png/algorand_logo_mark_black.png',
-  cornersSquareOptions: {
-    color: '#000000',
-    gradient: {
-      type: 'linear',
-      rotation: 0,
-      colorStops: [
-        { offset: 0, color: '#332257' },
-        { offset: 1, color: '#040908' },
-      ],
-    },
-  },
-  cornersDotOptions: {
-    type: 'dot',
-    color: '#000000',
-    gradient: {
-      type: 'linear',
-      rotation: 0,
-      colorStops: [
-        { offset: 0, color: '#000000' },
-        { offset: 1, color: '#000000' },
-      ],
-    },
-  },
 };
 
 export async function generateQRCode(
@@ -71,9 +36,8 @@ export async function generateQRCode(
     throw new Error(REQUEST_IS_MISSING_MESSAGE);
   qrCodeOptions.data = generateDeepLink(url, requestId);
 
-  // @ts-expect-error, figure out call signature issue
-  const qrCode = new QRCodeStyling(qrCodeOptions);
-  return qrCode.getRawData('png').then((blob) => {
+  const qrCode = new (QRCodeStyling as any)(qrCodeOptions);
+  return await qrCode.getRawData('png').then((blob) => {
     if (!blob) throw new TypeError('Could not get qrcode blob');
     return URL.createObjectURL(blob);
   });
@@ -97,8 +61,8 @@ export function generateDeepLink(origin: string, requestId: string) {
  *
  */
 export class SignalClient extends EventEmitter {
-  private url: string;
-  type: 'offer' | 'answer';
+  url: string;
+  type: 'offer' | 'answer' | null = null;
   private authenticated: boolean = false;
   private requestId: string | undefined;
   peerClient: RTCPeerConnection | undefined;
@@ -117,7 +81,7 @@ export class SignalClient extends EventEmitter {
     super();
     this.url = url;
     this.socket = io(url, options);
-    globalThis.socket = this.socket;
+
     this.socket.on('connect', () => {
       this.emit('connect', this.socket.id);
     });
@@ -130,20 +94,48 @@ export class SignalClient extends EventEmitter {
   static generateRequestId(): string {
     return uuidv7();
   }
-  attestation(
+
+  /**
+   * Handles the process of attestation by invoking the provided challenge handler and the specified options.
+   *
+   * @param {function(Uint8Array): any} onChallenge - A callback function to handle the challenge. Receives a Uint8Array representing the challenge.
+   * @param {object} [options=DEFAULT_ATTESTATION_OPTIONS] - Configuration options for the attestation process.
+   * @param debug
+   * @return {Promise<void>} A promise that resolves when attestation is successfully completed or rejects with an error if it fails.
+   */
+  async attestation(
     onChallenge: (challenge: Uint8Array) => any,
     options = DEFAULT_ATTESTATION_OPTIONS,
+    debug = false,
   ) {
-    return attestation(this.url, onChallenge, options)
-      .then(() => {
-        this.authenticated = true;
-      })
-      .catch((e) => {
-        this.authenticated = false;
-        throw e;
+    try {
+      const response = await attestation({
+        origin: this.url,
+        onChallenge,
+        options,
+        debug,
       });
+      this.authenticated = true;
+      return response;
+    } catch (e) {
+      this.authenticated = false;
+      throw e;
+    }
   }
-  assertion() {}
+  async assertion(credId: string, debug = false) {
+    try {
+      const response = await assertion({
+        origin: this.url,
+        credId,
+        debug,
+      });
+      this.authenticated = true;
+      return response;
+    } catch (e) {
+      this.authenticated = false;
+      throw e;
+    }
+  }
   /**
    * Create QR Code
    */
@@ -167,7 +159,7 @@ export class SignalClient extends EventEmitter {
     ) {
       throw new Error(REQUEST_IS_MISSING_MESSAGE);
     }
-    return generateDeepLink(this.url, requestId || this.requestId);
+    return generateDeepLink(this.url, requestId || this.requestId || '');
   }
   /**
    * # Create a peer connection
@@ -208,10 +200,13 @@ export class SignalClient extends EventEmitter {
       throw new Error(REQUEST_IN_PROCESS_MESSAGE);
 
     return new Promise(async (resolve) => {
-      let candidatesBuffer = [];
+      if (typeof requestId === 'undefined') {
+        throw new Error(REQUEST_IS_MISSING_MESSAGE);
+      }
+      let candidatesBuffer: RTCIceCandidateInit[] = [];
       // Create Peer Connection
       this.peerClient = new RTCPeerConnection(config);
-      globalThis.peerClient = this.peerClient;
+
       this.type = type === 'offer' ? 'answer' : 'offer';
       // Wait for a link message
       type === 'offer' && (await this.link(requestId));
@@ -227,8 +222,8 @@ export class SignalClient extends EventEmitter {
         `${type}-candidate`,
         async (candidate: RTCIceCandidateInit) => {
           if (
-            this.peerClient.remoteDescription &&
-            this.peerClient.remoteDescription
+            this.peerClient?.remoteDescription &&
+            this.peerClient?.remoteDescription
           ) {
             this.emit(`${type}-candidate`, candidate);
             await this.peerClient.addIceCandidate(
@@ -242,7 +237,6 @@ export class SignalClient extends EventEmitter {
 
       // Listen for Remote DataChannel and Resolve
       this.peerClient.ondatachannel = (event) => {
-        globalThis.dc = event.channel;
         this.emit('data-channel', event.channel);
         resolve(event.channel);
       };
@@ -256,7 +250,7 @@ export class SignalClient extends EventEmitter {
           await Promise.all(
             candidatesBuffer.map(async (candidate) => {
               this.emit(`${type}-candidate`, candidate);
-              await this.peerClient.addIceCandidate(
+              await this.peerClient?.addIceCandidate(
                 new RTCIceCandidate(candidate),
               );
             }),
@@ -277,7 +271,7 @@ export class SignalClient extends EventEmitter {
           await Promise.all(
             candidatesBuffer.map(async (candidate) => {
               this.emit(`${type}-candidate`, candidate);
-              await this.peerClient.addIceCandidate(
+              await this.peerClient?.addIceCandidate(
                 new RTCIceCandidate(candidate),
               );
             }),

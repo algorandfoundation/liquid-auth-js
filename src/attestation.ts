@@ -1,147 +1,110 @@
 /**
- * This module is only for browser and currently not used in the project.
+ * This module is only for the browser and currently not used in the project.
  * However, it could be useful for extension wallets or other browser-based wallets.
+ *
+ * @packageDocumentation
+ * @document ./attestation.guide.md
  */
-import { decodeAddress, fromBase64Url, toBase64URL } from './encoding.js';
-import { DEFAULT_FETCH_OPTIONS } from './constants.js';
-import { isValidResponse } from './errors.js';
+import { fromBase64Url } from './encoding.js';
+import {
+  AUTHENTICATOR_NOT_SUPPORTED_MESSAGE,
+  INVALID_INPUT_MESSAGE,
+} from './errors.js';
+import {
+  DEFAULT_ATTESTATION_OPTIONS,
+  postOptions,
+  postResponse,
+} from './attestation.fetch.js';
+import { decodeOptions, encodeCredential } from './attestation.encoder.js';
 
-export const DEFAULT_ATTESTATION_OPTIONS = {
-  attestationType: 'none',
-  authenticatorSelection: {
-    authenticatorAttachment: 'platform',
-    userVerification: 'required',
-    requireResidentKey: false,
-  },
-  extensions: {
-    liquid: true,
-  },
+export * as fetch from './attestation.fetch.js';
+export * as encoder from './attestation.encoder.js';
+
+type AttestationOptions = {
+  origin: string;
+  onChallenge: (options: any) => any;
+  options?: any;
+  debug?: boolean;
 };
-export interface EncodedAuthenticatorAttestationResponse {
-  [k: string]: string | undefined;
-  clientDataJSON: string;
-  attestationObject: string;
-  signature?: string;
-  userHandle?: string;
-}
-export interface EncodedAttestationCredential {
-  [k: string]: string | EncodedAuthenticatorAttestationResponse;
-  id: string;
-  type: string;
-  response: EncodedAuthenticatorAttestationResponse;
-  rawId: string;
-}
 
 /**
- * Encode a PublicKeyCredential
+ * Performs an attestation process that involves fetching options,
+ * handling a challenge, and creating a credential using the Web Authentication API.
  *
- * @param credential - PublicKeyCredential from navigator.credentials.create
+ * @param {Object} params - The configuration options for the attestation process.
+ * @param {string} params.origin - The origin URL to which requests are made.
+ * @param {Function} params.onChallenge - A function to handle the challenge returned by the service.
+ * @param {Object} [params.options=DEFAULT_ATTESTATION_OPTIONS] - Options to customize the attestation process.
+ * @param {boolean} [params.debug=false] - Flag to enable or disable debug logging.
+ * @return {Promise<any>} The response from the server after completing the attestation process.
  */
-function encodeAttestationCredential(
-  credential: PublicKeyCredential,
-): EncodedAttestationCredential {
-  const response = credential.response as AuthenticatorAttestationResponse;
-  return {
-    id: credential.id,
-    rawId: toBase64URL(credential.rawId),
-    type: credential.type,
-    response: {
-      clientDataJSON: toBase64URL(response.clientDataJSON),
-      attestationObject: toBase64URL(response.attestationObject),
-    },
-  };
-}
-
-function decodeAttestationOptions(options, liquidOptions) {
-  const attestationOptions = { ...options };
-  attestationOptions.user.id = decodeAddress(liquidOptions.address);
-  attestationOptions.user.name = liquidOptions.address;
-  attestationOptions.user.displayName = liquidOptions.address;
-  attestationOptions.challenge = fromBase64Url(options.challenge);
-
-  if (attestationOptions.excludeCredentials) {
-    for (const cred of attestationOptions.excludeCredentials) {
-      cred.id = fromBase64Url(cred.id);
-    }
-  }
-
-  return attestationOptions;
-}
-
-/**
- * Fetch interface for Attestation Options
- *
- * @param origin
- * @param options
- * @todo: Generate Typed JSON-RPC clients from Swagger/OpenAPI
- */
-export async function fetchAttestationRequest(
-  origin: string,
-  options = DEFAULT_ATTESTATION_OPTIONS,
-) {
-  return await fetch(`${origin}/attestation/request`, {
-    ...DEFAULT_FETCH_OPTIONS,
-    body: JSON.stringify(options),
-  });
-}
-
-/**
- * Fetch interface for Attestation Response
- *
- * @param origin
- * @param credential
- * @todo: Generate Typed JSON-RPC clients from Swagger/OpenAPI
- */
-export async function fetchAttestationResponse(
-  origin: string,
-  credential: EncodedAttestationCredential,
-) {
-  return await fetch(`${origin}/attestation/response`, {
-    ...DEFAULT_FETCH_OPTIONS,
-    body: JSON.stringify(credential),
-  }).then((r) => {
-    if (!isValidResponse(r)) throw new Error(r.statusText);
-    return r.json();
-  });
-}
-
-/**
- * Attestation
- *
- * The process of creating a new credential. It has two parts:
- *
- * - The server creates a challenge and sends it to the client
- * - The client creates a credential and sends it to the server
- *
- */
-export async function attestation(
-  origin: string,
-  onChallenge: (options: any) => any,
-  options = DEFAULT_ATTESTATION_OPTIONS,
-) {
-  const encodedAttestationOptions = await fetchAttestationRequest(
+export async function attestation(params: AttestationOptions) {
+  if (typeof navigator === 'undefined')
+    throw new Error(AUTHENTICATOR_NOT_SUPPORTED_MESSAGE);
+  if (typeof params === 'undefined') throw new Error(INVALID_INPUT_MESSAGE);
+  const {
     origin,
-    options,
-  ).then((r) => {
-    if (!isValidResponse(r)) throw new Error(r.statusText);
-    return r.json();
-  });
-  if (typeof encodedAttestationOptions.error !== 'undefined') {
-    throw new Error(encodedAttestationOptions.error);
+    onChallenge,
+    options = DEFAULT_ATTESTATION_OPTIONS,
+    debug,
+  } = params;
+  if (typeof origin !== 'string') {
+    throw new TypeError(INVALID_INPUT_MESSAGE);
   }
+  debug &&
+    console.log(
+      `%cFETCHING: %c/attestation/request/`,
+      'color: yellow',
+      'color: cyan',
+    );
 
+  // Fetch the options from the service
+  const credentialOptions = await postOptions(origin, options);
+
+  debug &&
+    console.log(
+      '%cHANDLE_SIGNATURE:%c onChallenge',
+      'color: yellow',
+      'color: cyan',
+      '*'.repeat(credentialOptions.challenge.length),
+    );
+
+  // Handle the additional signature challenge
   const liquidOptions = await onChallenge(
-    fromBase64Url(encodedAttestationOptions.challenge),
+    fromBase64Url(credentialOptions.challenge),
   );
-  const decodedPublicKey = decodeAttestationOptions(
-    encodedAttestationOptions,
-    liquidOptions,
-  );
-  const credential = encodeAttestationCredential(
-    (await navigator.credentials.create({
-      publicKey: decodedPublicKey,
-    })) as PublicKeyCredential,
-  );
+
+  debug &&
+    console.log(
+      '%cDECODE:%c assertion.encoder.decodeOptions',
+      'color: yellow',
+      'color: cyan',
+      '*'.repeat(liquidOptions.signature.length),
+    );
+
+  // Decode the options and merge the extension
+  const mergedOptions = decodeOptions(credentialOptions, liquidOptions);
+
+  // Create the credential using the Credential API
+  const credential = await navigator.credentials
+    .create({
+      publicKey: mergedOptions,
+    })
+    // Encode the credential for submitting to the service
+    .then(encodeCredential);
+
+  // Attach the extension results
+  // TODO: this should be provided by the CredentialProvider Service
   credential.clientExtensionResults = { liquid: liquidOptions } as any;
-  return await fetchAttestationResponse(origin, credential);
+
+  debug &&
+    console.log(
+      '%cPOSTING: %c/attestation/response',
+      'color: yellow',
+      'color: cyan',
+      credential,
+    );
+
+  // Send the credential to the service
+  return await postResponse(origin, credential);
 }

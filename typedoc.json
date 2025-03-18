@@ -1,0 +1,16 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "name": "@algorandfoundation/liquid-client",
+  "customFooterHtml": "Copyright <strong>Algorand Foundation</strong> 2025",
+  "hideGenerator": true,
+  "excludeInternal": true,
+  "entryPoints": [
+    "./src/index.ts",
+    "./src/assertion.ts",
+    "./src/attestation.ts",
+    "./src/constants.ts",
+    "./src/encoding.ts",
+    "./src/errors.ts",
+    "./src/signal.ts"
+  ]
+}

@@ -1,168 +1,73 @@
 /**
- * This module is only for browser and currently not used in the project.
- * However, it could be useful for extension wallets or other browser-based wallets.
+ * This module is only for use within the browser.
+ *
+ * @packageDocumentation
+ * @document ./assertion.guide.md
  */
-import { fromBase64Url, toBase64URL } from './encoding.js';
-import { DEFAULT_FETCH_OPTIONS } from './constants.js';
+import { postOptions, postResponse } from './assertion.fetch.js';
+import { decodeOptions, encodeCredential } from './assertion.encoder.js';
 import {
-  isValidResponse,
+  AUTHENTICATOR_NOT_SUPPORTED_MESSAGE,
   INVALID_INPUT_MESSAGE,
-  CREDENTIAL_ACTION_FAILURE,
 } from './errors.js';
 
-export type EncodedPublicKeyCredentialDescriptor =
-  PublicKeyCredentialDescriptor & {
-    id: string;
-  };
-export type EncodedPublicKeyCredentialRequestOptions =
-  PublicKeyCredentialRequestOptions & {
-    allowCredentials?: EncodedPublicKeyCredentialDescriptor[];
-    challenge: string;
-  };
-/**
- * Fetch Assertion Options
- *
- * POST Authenticator Selector to the REST API
- * to receive the PublicKeyCredentialRequestOptions
- *
- * @param origin
- * @param credId
- * @todo: Generate Typed JSON-RPC clients from Swagger/OpenAPI
- */
-export async function fetchAssertionRequestOptions(
-  origin: string,
-  credId: string,
-) {
-  if (typeof origin !== 'string' || typeof credId !== 'string') {
-    throw new TypeError(INVALID_INPUT_MESSAGE);
-  }
-  return await fetch(`/assertion/request/${credId}`, {
-    ...DEFAULT_FETCH_OPTIONS,
-  }).then((r) => {
-    if (!isValidResponse(r)) {
-      throw new Error(r.statusText);
-    }
-    return r.json() as Promise<EncodedPublicKeyCredentialRequestOptions>;
-  });
-}
-/**
- * Decode Assertion Request Options
- *
- * @param options
- */
-export function decodeAssertionRequestOptions(
-  options: EncodedPublicKeyCredentialRequestOptions,
-) {
-  if (typeof options !== 'object' || typeof options.challenge !== 'string')
-    throw new TypeError(INVALID_INPUT_MESSAGE);
+export * as fetch from './assertion.fetch.js';
+export * as encoder from './assertion.encoder.js';
 
-  const decodedOptions: PublicKeyCredentialRequestOptions = { ...options };
-  decodedOptions.challenge = fromBase64Url(options.challenge as string);
-  decodedOptions.allowCredentials =
-    options.allowCredentials?.map(
-      (cred: EncodedPublicKeyCredentialDescriptor) => {
-        return {
-          ...cred,
-          id: fromBase64Url(cred.id as string),
-        } as PublicKeyCredentialDescriptor;
-      },
-    ) || [];
-  return decodedOptions;
-}
-
-export type EncodedAuthenticatorAssertionResponse = {
-  [k: string]: string;
-  clientDataJSON: string;
-  authenticatorData: string;
-  signature: string;
-  userHandle: string;
+/**
+ * Represents the options for an assertion used during authentication.
+ */
+export type AssertionOptions = {
+  /**
+   * Represents the origin service to which a request should be sent.
+   */
+  origin: string;
+  /**
+   * Represents the unique identifier for a credential.
+   * This variable identifies a specific credential within the authenticator.
+   */
+  credId: string;
+  /**
+   * An optional configuration object that specifies options for a PublicKeyCredential request.
+   *
+   * This object is used during the process of requesting a credential from the user's device
+   * for Web Authentication (WebAuthn). It allows customization of the request to match
+   * the application's authentication requirements.
+   *
+   * Property details of `PublicKeyCredentialRequestOptions` typically include:
+   * - `timeout`: The time, in milliseconds, that the user agent is expected to wait for a response.
+   * - `userVerification`: Specifies the level of user verification required (e.g., "required", "preferred", "discouraged").
+   *
+   * This parameter is optional when calling authentication-related functions. If omitted,
+   * the request may rely on default or previously established options.
+   */
+  options?: PublicKeyCredentialRequestOptions;
+  /**
+   * A boolean flag to enable or disable debug mode.
+   * If set to `true`, the application may output additional
+   * logging or diagnostic information useful for debugging.
+   * Defaults to `false` if not specified.
+   */
+  debug?: boolean;
 };
-export type EncodedCredential = {
-  [k: string]: string | EncodedAuthenticatorAssertionResponse;
-  id: string;
-  type: string;
-  response: EncodedAuthenticatorAssertionResponse;
-  rawId: string;
-};
-
-/**
- * Fetch Assertion Response
- *
- * POST an Authenticator Assertion Response to the REST API
- *
- * @param origin
- * @param credential
- * @todo: Generate Typed JSON-RPC clients from Swagger/OpenAPI
- */
-export async function fetchAssertionResponse(
-  origin: string,
-  credential: EncodedCredential,
-) {
-  if (typeof origin !== 'string' || typeof credential !== 'object') {
-    // TODO: instance check for SerializedCredential
-    throw new TypeError(INVALID_INPUT_MESSAGE);
-  }
-  return await fetch(`${origin}/assertion/response`, {
-    ...DEFAULT_FETCH_OPTIONS,
-    body: JSON.stringify(credential),
-  }).then((r) => {
-    if (!isValidResponse(r)) {
-      throw new Error(r.statusText);
-    }
-    return r.json();
-  });
-}
-/**
- *
- * @param response
- */
-export function encodeAuthenticatorAssertionResponse(
-  response: AuthenticatorAssertionResponse & Record<string, ArrayBuffer>,
-) {
-  return Object.keys(
-    AuthenticatorAssertionResponse.prototype,
-  ).reduce<EncodedAuthenticatorAssertionResponse>(
-    (prev, curr) => {
-      prev[curr] = toBase64URL(response[curr]);
-      return prev;
-    },
-    {
-      clientDataJSON: toBase64URL(response.clientDataJSON),
-    } as EncodedAuthenticatorAssertionResponse,
-  );
-}
-
-/**
- *
- * @param credential
- */
-export function encodeCredential(
-  credential: PublicKeyCredential,
-): EncodedCredential {
-  if (!credential) throw new Error(INVALID_INPUT_MESSAGE);
-  const response = credential.response as AuthenticatorAssertionResponse &
-    Record<string, ArrayBuffer>;
-  if (!response) throw new Error(CREDENTIAL_ACTION_FAILURE);
-  return {
-    id: credential.id,
-    type: credential.type,
-    rawId: toBase64URL(credential.rawId),
-    response: encodeAuthenticatorAssertionResponse(response),
-  };
-}
-
 /**
  * Assert a known credential
- * @param origin
- * @param credId
- * @param debug
+ *
+ * Handles both {@link fetch.postOptions} and {@link fetch.postResponse} for the caller.
+ * This includes encoding/decoding the payloads from the service and navigator api.
+ *
+ * #### Quick Start:
+ * {@includeCode ./assertion.spec.ts#assertionImport,quickStart}
+ *
+ *
+ * @param {AssertionOptions} params
  */
-export async function assertion(
-  origin: string,
-  credId: string,
-  debug: boolean = false,
-) {
-  if (typeof credId !== 'string') {
+export async function assertion(params: AssertionOptions) {
+  if (typeof navigator === 'undefined')
+    throw new Error(AUTHENTICATOR_NOT_SUPPORTED_MESSAGE);
+  if (typeof params === 'undefined') throw new Error(INVALID_INPUT_MESSAGE);
+  const { origin, credId, options, debug } = params;
+  if (typeof credId !== 'string' || typeof origin !== 'string') {
     throw new TypeError(INVALID_INPUT_MESSAGE);
   }
   debug &&
@@ -172,11 +77,13 @@ export async function assertion(
       'color: cyan',
     );
 
-  const options = await fetchAssertionRequestOptions(origin, credId).then(
-    decodeAssertionRequestOptions,
-  );
+  // Use the passed-in options or fetch the options from the server
+  const credentialOptions =
+    typeof options !== 'undefined'
+      ? options // TODO: validate options
+      : await postOptions(origin, credId).then(decodeOptions);
 
-  if (options.allowCredentials.length === 0) {
+  if (credentialOptions.allowCredentials?.length === 0) {
     debug && console.info('No registered credentials found.');
     return null;
   }
@@ -189,10 +96,12 @@ export async function assertion(
       options,
     );
 
+  // Retrieve the credential from the Credential api
   const credential = await navigator.credentials
     .get({
-      publicKey: options,
+      publicKey: credentialOptions,
     })
+    // Encode the credential for submitting to the service
     .then(encodeCredential);
 
   debug &&
@@ -203,5 +112,6 @@ export async function assertion(
       credential,
     );
 
-  return fetchAssertionResponse(origin, credential);
+  // Send the credential to the service
+  return postResponse(origin, credential);
 }
