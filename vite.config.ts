@@ -35,6 +35,7 @@ export default defineConfig({
   },
 
   server: {
+    allowedHosts: ["catfish-pro-wolf.ngrok-free.app"],
     proxy: {
       '^/auth/.*': process.env.PROXY_URL || DEFAULT_PROXY_URL,
       '^/.well-known/.*': process.env.PROXY_URL || DEFAULT_PROXY_URL,
