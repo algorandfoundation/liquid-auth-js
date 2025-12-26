@@ -51,6 +51,7 @@ export async function attestation(params: AttestationOptions) {
   if (typeof origin !== 'string') {
     throw new TypeError(INVALID_INPUT_MESSAGE);
   }
+  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   debug &&
     console.log(
       `%cFETCHING: %c/attestation/request/`,
@@ -61,6 +62,7 @@ export async function attestation(params: AttestationOptions) {
   // Fetch the options from the service
   const credentialOptions = await postOptions(origin, options);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   debug &&
     console.log(
       '%cHANDLE_SIGNATURE:%c onChallenge',
@@ -74,6 +76,7 @@ export async function attestation(params: AttestationOptions) {
     fromBase64Url(credentialOptions.challenge),
   );
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   debug &&
     console.log(
       '%cDECODE:%c assertion.encoder.decodeOptions',
@@ -97,6 +100,7 @@ export async function attestation(params: AttestationOptions) {
   // TODO: this should be provided by the CredentialProvider Service
   credential.clientExtensionResults = { liquid: liquidOptions } as any;
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   debug &&
     console.log(
       '%cPOSTING: %c/attestation/response',

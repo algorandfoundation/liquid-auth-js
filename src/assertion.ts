@@ -70,6 +70,8 @@ export async function assertion(params: AssertionOptions) {
   if (typeof credId !== 'string' || typeof origin !== 'string') {
     throw new TypeError(INVALID_INPUT_MESSAGE);
   }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   debug &&
     console.log(
       `%cFETCHING: %c/assertion/request/${credId}`,
@@ -84,10 +86,12 @@ export async function assertion(params: AssertionOptions) {
       : await postOptions(origin, credId).then(decodeOptions);
 
   if (credentialOptions.allowCredentials?.length === 0) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     debug && console.info('No registered credentials found.');
     return null;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   debug &&
     console.log(
       '%cGET_CREDENTIAL:%c navigator.credentials.get',
@@ -104,6 +108,7 @@ export async function assertion(params: AssertionOptions) {
     // Encode the credential for submitting to the service
     .then(encodeCredential);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   debug &&
     console.log(
       '%cPOSTING: %c/assertion/response',

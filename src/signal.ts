@@ -196,7 +196,6 @@ export class SignalClient extends EventEmitter {
       iceCandidatePoolSize: 10,
     },
   ): Promise<RTCDataChannel> {
-
     if (typeof this.requestId !== 'undefined')
       throw new Error(REQUEST_IN_PROCESS_MESSAGE);
 
