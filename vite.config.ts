@@ -1,6 +1,6 @@
 import { dirname, extname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 import { glob } from 'glob';
 import { analyzer } from 'vite-bundle-analyzer';
 import dts from 'vite-plugin-dts';
@@ -87,5 +87,19 @@ export default defineConfig({
         entryFileNames: '[name].js',
       },
     },
-  }
+  },
+  test: {
+    coverage: {
+      exclude: ['*.bench.ts', 'main.ts', 'test', 'vite.config.ts'],
+    },
+    browser: {
+      enabled: false,
+      provider: playwright(),
+      instances: [
+        { browser: 'chromium' },
+        { browser: 'firefox' },
+        { browser: 'webkit' },
+      ],
+    },
+  },
 });
