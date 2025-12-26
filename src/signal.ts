@@ -199,67 +199,60 @@ export class SignalClient extends EventEmitter {
     if (typeof this.requestId !== 'undefined')
       throw new Error(REQUEST_IN_PROCESS_MESSAGE);
 
-    return new Promise(async (resolve) => {
-      if (typeof requestId === 'undefined') {
-        throw new Error(REQUEST_IS_MISSING_MESSAGE);
-      }
-      let candidatesBuffer: RTCIceCandidateInit[] = [];
-      // Create Peer Connection
+    return new Promise<RTCDataChannel>(async (resolve, reject) => {
+      // --- 1. Validate input and initialize peer connection ---
+      if (!requestId) return reject(new Error(REQUEST_IS_MISSING_MESSAGE));
       this.peerClient = new RTCPeerConnection(config);
-
       this.type = type === 'offer' ? 'answer' : 'offer';
-      // Wait for a link message
-      type === 'offer' && (await this.link(requestId));
-      // Listen for Local Candidates
+      const candidatesBuffer: RTCIceCandidateInit[] = [];
+
+      // --- 2. For 'offer' type, establish link with server for signaling ---
+      if (type === 'offer') await this.link(requestId);
+
+      // --- 3. Handle local ICE candidates: emit to server and local events ---
       this.peerClient.onicecandidate = (event) => {
         if (event.candidate) {
-          this.emit(`${this.type}-candidate`, event.candidate.toJSON());
-          this.socket.emit(`${this.type}-candidate`, event.candidate.toJSON());
+          const candidate = event.candidate.toJSON();
+          this.emit(`${this.type}-candidate`, candidate);
+          this.socket.emit(`${this.type}-candidate`, candidate);
         }
       };
-      // Listen to Remote Candidates
-      this.socket.on(
-        `${type}-candidate`,
-        async (candidate: RTCIceCandidateInit) => {
-          if (
-            this.peerClient?.remoteDescription &&
-            this.peerClient?.remoteDescription
-          ) {
-            this.emit(`${type}-candidate`, candidate);
-            await this.peerClient.addIceCandidate(
-              new RTCIceCandidate(candidate),
-            );
-          } else {
-            candidatesBuffer.push(candidate);
-          }
-        },
-      );
 
-      // Listen for Remote DataChannel and Resolve
-      this.peerClient.ondatachannel = (event) => {
-        this.emit('data-channel', event.channel);
-        resolve(event.channel);
+      // --- 4. Handle remote ICE candidates from server, buffer if needed ---
+      this.socket.on(`${type}-candidate`, async (candidate: RTCIceCandidateInit) => {
+        if (this.peerClient?.remoteDescription) {
+          this.emit(`${type}-candidate`, candidate);
+          await this.peerClient.addIceCandidate(new RTCIceCandidate(candidate));
+        } else {
+          candidatesBuffer.push(candidate);
+        }
+      });
+
+      // --- 5. Helper to add any buffered ICE candidates after remote description is set ---
+      const addBufferedCandidates = async () => {
+        for (const candidate of candidatesBuffer) {
+          this.emit(`${type}-candidate`, candidate);
+          await this.peerClient?.addIceCandidate(new RTCIceCandidate(candidate));
+        }
+        candidatesBuffer.length = 0;
       };
-      // Handle Session Descriptions
+
+      // --- 6. Handle offer/answer negotiation and data channel setup ---
       if (type === 'offer') {
+        // As answerer: wait for remote offer, create answer, send back
+        this.peerClient.ondatachannel = (event) => {
+          this.emit('data-channel', event.channel);
+          resolve(event.channel);
+        };
         const sdp = await this.signal(type);
         await this.peerClient.setRemoteDescription(sdp);
         const answer = await this.peerClient.createAnswer();
         await this.peerClient.setLocalDescription(answer);
-        if (candidatesBuffer.length > 0) {
-          await Promise.all(
-            candidatesBuffer.map(async (candidate) => {
-              this.emit(`${type}-candidate`, candidate);
-              await this.peerClient?.addIceCandidate(
-                new RTCIceCandidate(candidate),
-              );
-            }),
-          );
-          candidatesBuffer = [];
-        }
+        await addBufferedCandidates();
         this.emit(`${this.type}-description`, answer.sdp);
         this.socket.emit(`${this.type}-description`, answer.sdp);
       } else {
+        // As offerer: create data channel, send offer, wait for answer
         const dataChannel = this.peerClient.createDataChannel('liquid');
         const localSdp = await this.peerClient.createOffer();
         await this.peerClient.setLocalDescription(localSdp);
@@ -267,17 +260,7 @@ export class SignalClient extends EventEmitter {
         this.emit(`${this.type}-description`, localSdp.sdp);
         const sdp = await this.signal(type);
         await this.peerClient.setRemoteDescription(sdp);
-        if (candidatesBuffer.length > 0) {
-          await Promise.all(
-            candidatesBuffer.map(async (candidate) => {
-              this.emit(`${type}-candidate`, candidate);
-              await this.peerClient?.addIceCandidate(
-                new RTCIceCandidate(candidate),
-              );
-            }),
-          );
-          candidatesBuffer = [];
-        }
+        await addBufferedCandidates();
         this.emit('data-channel', dataChannel);
         resolve(dataChannel);
       }
