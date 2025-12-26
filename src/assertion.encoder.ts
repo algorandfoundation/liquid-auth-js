@@ -101,7 +101,9 @@ export function decodeOptions(
   if (typeof options !== 'object' || typeof options.challenge !== 'string')
     throw new TypeError(INVALID_INPUT_MESSAGE);
   const decodedOptions: PublicKeyCredentialRequestOptions = { ...options };
-  decodedOptions.challenge = fromBase64Url(options.challenge as string);
+  decodedOptions.challenge = new Uint8Array(
+    fromBase64Url(options.challenge as string),
+  );
   decodedOptions.allowCredentials =
     options.allowCredentials?.map(
       (cred: EncodedPublicKeyCredentialDescriptor) => {

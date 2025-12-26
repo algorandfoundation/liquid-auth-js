@@ -6,7 +6,7 @@
  * @document ./signal.answer.guide.md
  */
 import { io, ManagerOptions, Socket, SocketOptions } from 'socket.io-client';
-import QRCodeStyling, { Options as QRCodeOptions } from 'qr-code-styling';
+import { QRCodeStyling } from 'qr-code-styling/lib/qr-code-styling.common.js';
 import { EventEmitter } from 'eventemitter3';
 import { v7 as uuidv7 } from 'uuid';
 
@@ -30,7 +30,7 @@ export type LinkMessage = {
 
 export async function generateQRCode(
   { requestId, url }: { requestId?: string; url: string },
-  qrCodeOptions: QRCodeOptions = DEFAULT_QR_CODE_OPTIONS,
+  qrCodeOptions = DEFAULT_QR_CODE_OPTIONS,
 ) {
   if (typeof requestId === 'undefined')
     throw new Error(REQUEST_IS_MISSING_MESSAGE);
@@ -63,10 +63,10 @@ export function generateDeepLink(origin: string, requestId: string) {
 export class SignalClient extends EventEmitter {
   url: string;
   type: 'offer' | 'answer' | null = null;
-  private authenticated: boolean = false;
-  private requestId: string | undefined;
+  authenticated: boolean = false;
+  requestId: string | undefined;
   peerClient: RTCPeerConnection | undefined;
-  private qrCodeOptions: QRCodeOptions = DEFAULT_QR_CODE_OPTIONS;
+  private qrCodeOptions = DEFAULT_QR_CODE_OPTIONS;
   socket: Socket;
 
   /**

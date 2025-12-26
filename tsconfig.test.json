@@ -4,6 +4,7 @@
     "composite": true,
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
+    "types": ["node", "unist"],
     "skipLibCheck": true,
     "moduleResolution": "node",
     "module": "esnext",

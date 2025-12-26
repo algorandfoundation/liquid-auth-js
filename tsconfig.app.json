@@ -15,6 +15,7 @@
     "rootDir": "./src",
     "outDir": "./lib",
     "lib": ["es2022", "dom"],
+    "types": ["node", "unist"],
     "declaration": true,
     "sourceMap": true,
     "module": "NodeNext",
