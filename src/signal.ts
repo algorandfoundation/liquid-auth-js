@@ -196,13 +196,16 @@ export class SignalClient extends EventEmitter {
       iceCandidatePoolSize: 10,
     },
   ): Promise<RTCDataChannel> {
+
     if (typeof this.requestId !== 'undefined')
       throw new Error(REQUEST_IN_PROCESS_MESSAGE);
 
     return new Promise<RTCDataChannel>(async (resolve, reject) => {
       // --- 1. Validate input and initialize peer connection ---
       if (!requestId) return reject(new Error(REQUEST_IS_MISSING_MESSAGE));
+
       this.peerClient = new RTCPeerConnection(config);
+
       this.type = type === 'offer' ? 'answer' : 'offer';
       const candidatesBuffer: RTCIceCandidateInit[] = [];
 
@@ -219,20 +222,27 @@ export class SignalClient extends EventEmitter {
       };
 
       // --- 4. Handle remote ICE candidates from server, buffer if needed ---
-      this.socket.on(`${type}-candidate`, async (candidate: RTCIceCandidateInit) => {
-        if (this.peerClient?.remoteDescription) {
-          this.emit(`${type}-candidate`, candidate);
-          await this.peerClient.addIceCandidate(new RTCIceCandidate(candidate));
-        } else {
-          candidatesBuffer.push(candidate);
-        }
-      });
+      this.socket.on(
+        `${type}-candidate`,
+        async (candidate: RTCIceCandidateInit) => {
+          if (this.peerClient?.remoteDescription) {
+            this.emit(`${type}-candidate`, candidate);
+            await this.peerClient.addIceCandidate(
+              new RTCIceCandidate(candidate),
+            );
+          } else {
+            candidatesBuffer.push(candidate);
+          }
+        },
+      );
 
       // --- 5. Helper to add any buffered ICE candidates after remote description is set ---
       const addBufferedCandidates = async () => {
         for (const candidate of candidatesBuffer) {
           this.emit(`${type}-candidate`, candidate);
-          await this.peerClient?.addIceCandidate(new RTCIceCandidate(candidate));
+          await this.peerClient?.addIceCandidate(
+            new RTCIceCandidate(candidate),
+          );
         }
         candidatesBuffer.length = 0;
       };

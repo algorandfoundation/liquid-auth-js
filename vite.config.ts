@@ -5,6 +5,7 @@ import { glob } from 'glob';
 import { analyzer } from 'vite-bundle-analyzer';
 import dts from 'vite-plugin-dts';
 import { codecovVitePlugin } from '@codecov/vite-plugin';
+import { playwright } from '@vitest/browser-playwright';
 
 import pkg from './package.json';
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -86,19 +87,5 @@ export default defineConfig({
         entryFileNames: '[name].js',
       },
     },
-  },
-  test: {
-    coverage: {
-      exclude: ['*.bench.ts', 'main.ts', 'test', 'vite.config.ts'],
-    },
-    browser: {
-      enabled: false,
-      provider: 'playwright',
-      instances: [
-        { browser: 'chromium' },
-        { browser: 'firefox' },
-        { browser: 'webkit' },
-      ],
-    },
-  },
+  }
 });

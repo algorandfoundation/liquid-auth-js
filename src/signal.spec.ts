@@ -13,43 +13,49 @@ import createResponseBodyFixtures from '../__fixtures__/attestation.response.bod
 import createResponseResponseFixtures from '../__fixtures__/attestation.response.response.fixtures.json';
 
 // @ts-expect-error, needed for testing
-globalThis.RTCPeerConnection = vi.fn().mockImplementation(() => {
-  return {
-    createDataChannel: vi.fn(() => {
-      return {
-        send: vi.fn(),
-      };
-    }),
-    createOffer: vi.fn().mockResolvedValue({
+globalThis.RTCPeerConnection = vi.fn(
+  class {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    constructor(configuration?: RTCConfiguration) {}
+
+    createDataChannel = vi.fn().mockReturnValue({
+      send: vi.fn(),
+    });
+
+    createOffer = vi.fn().mockResolvedValue({
       type: 'offer',
       sdp: 'offer-sdp-fixture',
-    }),
-    createAnswer: vi.fn().mockResolvedValue({
+    });
+
+    createAnswer = vi.fn().mockResolvedValue({
       type: 'answer',
       sdp: 'answer-sdp-fixture',
-    }),
+    });
+    setLocalDescription = vi.fn().mockResolvedValue(undefined);
+    setRemoteDescription = vi.fn().mockResolvedValue(undefined);
+    addIceCandidate = vi.fn().mockResolvedValue(undefined);
+    close = vi.fn().mockReturnValue(undefined);
 
-    // @ts-expect-error, needed for testing
-    setLocalDescription: vi.fn().mockResolvedValue(),
-    // @ts-expect-error, needed for testing
-    setRemoteDescription: vi.fn().mockResolvedValue(),
-    // @ts-expect-error, needed for testing
-    addIceCandidate: vi.fn().mockResolvedValue(),
-    ondatachannel: vi.fn(),
-    onicecandidate: vi.fn(),
-    onnegotiationneeded: vi.fn(),
-    oniceconnectionstatechange: vi.fn(),
-    onicegatheringstatechange: vi.fn(),
-    onsignalingstatechange: vi.fn(),
-    onconnectionstatechange: vi.fn(),
-    onicecandidateerror: vi.fn(),
-    ontrack: vi.fn(),
-  };
-});
+    ondatachannel = vi.fn();
+    onicecandidate = vi.fn();
+    onnegotiationneeded = vi.fn();
+    oniceconnectionstatechange = vi.fn();
+    onicegatheringstatechange = vi.fn();
+    onsignalingstatechange = vi.fn();
+    onconnectionstatechange = vi.fn();
+    onicecandidateerror = vi.fn();
+    ontrack = vi.fn();
+  },
+);
 
-globalThis.RTCIceCandidate = vi.fn().mockImplementation((candidate) => {
-  return candidate;
-});
+// @ts-expect-error, needed for testing
+globalThis.RTCIceCandidate = vi.fn(
+  class {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    constructor(candidate: RTCIceCandidateInit) {}
+  },
+);
+
 let socket: SocketServerMock;
 vi.mock('socket.io-client', () => {
   return {
