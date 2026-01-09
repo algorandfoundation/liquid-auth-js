@@ -196,8 +196,11 @@ export class SignalClient extends EventEmitter {
       iceCandidatePoolSize: 10,
     },
   ): Promise<RTCDataChannel> {
-    if (typeof this.requestId !== 'undefined')
-      throw new Error(REQUEST_IN_PROCESS_MESSAGE);
+    if (typeof this.requestId !== 'undefined') {
+      return Promise.reject<RTCDataChannel>(
+        new Error(REQUEST_IN_PROCESS_MESSAGE),
+      );
+    }
 
     return new Promise<RTCDataChannel>(async (resolve, reject) => {
       // --- 1. Validate input and initialize peer connection ---
