@@ -63,8 +63,8 @@ export function generateDeepLink(origin: string, requestId: string) {
 export class SignalClient extends EventEmitter {
   url: string;
   type: 'offer' | 'answer' | null = null;
-  authenticated: boolean = false;
-  requestId: string | undefined;
+  private authenticated: boolean = false;
+  private requestId: string | undefined;
   peerClient: RTCPeerConnection | undefined;
   private qrCodeOptions = DEFAULT_QR_CODE_OPTIONS;
   socket: Socket;
