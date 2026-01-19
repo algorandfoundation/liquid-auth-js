@@ -36,7 +36,7 @@ export async function generateQRCode(
     throw new Error(REQUEST_IS_MISSING_MESSAGE);
   qrCodeOptions.data = generateDeepLink(url, requestId);
 
-  const qrCode = new (QRCodeStyling as any)(qrCodeOptions);
+  const qrCode = new (QRCodeStyling as any).default(qrCodeOptions);
   return await qrCode.getRawData('png').then((blob) => {
     if (!blob) throw new TypeError('Could not get qrcode blob');
     return URL.createObjectURL(blob);

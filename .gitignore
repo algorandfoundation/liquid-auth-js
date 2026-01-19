@@ -3,7 +3,7 @@ docker-compose.override.yml
 swagger-codegen-cli.jar
 ngrok.yml
 .data
-#lib
+lib
 docs
 
 # Logs

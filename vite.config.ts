@@ -10,10 +10,16 @@ import pkg from './package.json';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DEFAULT_PROXY_URL = 'http://localhost:3000';
 const DEFAULT_WSS_PROXY_URL = 'ws://localhost:3000';
+const isCjs = process.env.LIQUID_AUTH_JS_BUILD_FORMAT === 'cjs';
 export default defineConfig({
   plugins: [
     process.env.ANALYZE ? analyzer() : undefined,
-    dts({ tsconfigPath: './tsconfig.app.json' }),
+    // Emit type declarations to lib/types to decouple from JS format dirs
+    dts({
+      tsconfigPath: './tsconfig.app.json',
+      outDir: 'lib/types',
+      insertTypesEntry: true,
+    }),
     codecovVitePlugin({
       enableBundleAnalysis: process.env.CODECOV_TOKEN !== undefined,
       bundleName: '@algorandfoundation/liquid-client',
@@ -51,12 +57,12 @@ export default defineConfig({
     minify: false,
     sourcemap: true,
     copyPublicDir: false,
-    emptyOutDir: true,
+    emptyOutDir: !isCjs, // Only empty on first build
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
-      formats: ['es'],
+      formats: [isCjs ? 'cjs' : 'es'],
     },
-    outDir: 'lib',
+    outDir: isCjs ? 'lib/cjs' : 'lib/esm',
     rollupOptions: {
       external: Object.keys(pkg.dependencies),
       input: Object.fromEntries(
@@ -70,20 +76,15 @@ export default defineConfig({
               '**/*.bench.ts',
             ],
           })
-          .map((file) => {
-            return [
-              relative(
-                'src',
-                file.slice(0, file.length - extname(file).length),
-              ),
-              fileURLToPath(new URL(file, import.meta.url)),
-            ];
-          }),
+          .map((file) => [
+            relative('src', file.slice(0, file.length - extname(file).length)),
+            fileURLToPath(new URL(file, import.meta.url)),
+          ])
       ),
       output: {
         compact: false,
         preserveModules: true,
-        entryFileNames: '[name].js',
+        entryFileNames: isCjs ? '[name].cjs' : '[name].js',
       },
     },
   },
