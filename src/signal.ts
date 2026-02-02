@@ -69,6 +69,44 @@ export class SignalClient extends EventEmitter {
   private qrCodeOptions: QRCodeOptions = DEFAULT_QR_CODE_OPTIONS;
   socket: Socket;
 
+  private isIgnorableIceCandidateError(err: unknown): boolean {
+    const anyErr = err as any;
+    const msg = String(anyErr?.message ?? anyErr);
+    const name = String(anyErr?.name ?? '');
+
+    // node-datachannel can throw when candidates arrive out-of-order:
+    // "libdatachannel error while adding remote candidate: Got a remote candidate without ICE transport"
+    if (
+      name === 'NotFoundError' &&
+      msg.includes('remote candidate') &&
+      msg.includes('ICE transport')
+    )
+      return true;
+    if (
+      msg.includes('libdatachannel error while adding remote candidate') &&
+      msg.includes('ICE transport')
+    )
+      return true;
+    return false;
+  }
+
+  private async safeAddIceCandidate(
+    candidate: RTCIceCandidateInit,
+  ): Promise<void> {
+    const pc = this.peerClient;
+    if (!pc) return;
+
+    // Avoid calling into a closed PC (extra safety)
+    if ((pc as any).signalingState === 'closed') return;
+
+    try {
+      await pc.addIceCandidate(new RTCIceCandidate(candidate));
+    } catch (err) {
+      if (this.isIgnorableIceCandidateError(err)) return;
+      throw err;
+    }
+  }
+
   /**
    *
    * @param url
@@ -226,9 +264,7 @@ export class SignalClient extends EventEmitter {
             this.peerClient?.remoteDescription
           ) {
             this.emit(`${type}-candidate`, candidate);
-            await this.peerClient.addIceCandidate(
-              new RTCIceCandidate(candidate),
-            );
+            await this.safeAddIceCandidate(candidate);
           } else {
             candidatesBuffer.push(candidate);
           }
@@ -250,9 +286,7 @@ export class SignalClient extends EventEmitter {
           await Promise.all(
             candidatesBuffer.map(async (candidate) => {
               this.emit(`${type}-candidate`, candidate);
-              await this.peerClient?.addIceCandidate(
-                new RTCIceCandidate(candidate),
-              );
+              await this.safeAddIceCandidate(candidate);
             }),
           );
           candidatesBuffer = [];
@@ -271,9 +305,7 @@ export class SignalClient extends EventEmitter {
           await Promise.all(
             candidatesBuffer.map(async (candidate) => {
               this.emit(`${type}-candidate`, candidate);
-              await this.peerClient?.addIceCandidate(
-                new RTCIceCandidate(candidate),
-              );
+              await this.safeAddIceCandidate(candidate);
             }),
           );
           candidatesBuffer = [];
