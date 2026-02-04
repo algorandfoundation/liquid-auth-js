@@ -40,9 +40,16 @@
       "default": "./lib/encoding.js"
     }
   },
+  "files": [
+    "lib/**",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "scripts": {
     "dev": "wait-on -t 3s http://localhost:3000/auth/session && vite",
     "build": "vite build",
+    "prepack": "npm run build",
     "build:docs": "typedoc --plugin typedoc-plugin-markdown --out docs src src/client",
     "lint": "eslint --fix src",
     "bench": "vitest bench",
