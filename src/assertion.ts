@@ -4,15 +4,17 @@
  * @packageDocumentation
  * @document ./assertion.guide.md
  */
-import { postOptions, postResponse } from './assertion.fetch.js';
-import { decodeOptions, encodeCredential } from './assertion.encoder.js';
-import {
-  AUTHENTICATOR_NOT_SUPPORTED_MESSAGE,
-  INVALID_INPUT_MESSAGE,
-} from './errors.js';
+import { postOptions, postResponse } from "./assertion.fetch.js";
+import { decodeOptions, encodeCredential } from "./assertion.encoder.js";
+import { AUTHENTICATOR_NOT_SUPPORTED_MESSAGE, INVALID_INPUT_MESSAGE } from "./errors.js";
+import type {
+  PublicKeyCredentialRequestOptions,
+  PublicKeyCredentialRequestOptionsJSON,
+} from "@simplewebauthn/browser";
+import type { User } from "./types.ts";
 
-export * as fetch from './assertion.fetch.js';
-export * as encoder from './assertion.encoder.js';
+export * as fetch from "./assertion.fetch.js";
+export * as encoder from "./assertion.encoder.js";
 
 /**
  * Represents the options for an assertion used during authentication.
@@ -41,7 +43,7 @@ export type AssertionOptions = {
    * This parameter is optional when calling authentication-related functions. If omitted,
    * the request may rely on default or previously established options.
    */
-  options?: PublicKeyCredentialRequestOptions;
+  options?: PublicKeyCredentialRequestOptionsJSON;
   /**
    * A boolean flag to enable or disable debug mode.
    * If set to `true`, the application may output additional
@@ -62,56 +64,53 @@ export type AssertionOptions = {
  *
  * @param {AssertionOptions} params
  */
-export async function assertion(params: AssertionOptions) {
-  if (typeof navigator === 'undefined')
-    throw new Error(AUTHENTICATOR_NOT_SUPPORTED_MESSAGE);
-  if (typeof params === 'undefined') throw new Error(INVALID_INPUT_MESSAGE);
+export async function assertion(params: AssertionOptions): Promise<User | null> {
+  if (typeof navigator === "undefined") throw new Error(AUTHENTICATOR_NOT_SUPPORTED_MESSAGE);
+  if (typeof params === "undefined") throw new Error(INVALID_INPUT_MESSAGE);
   const { origin, credId, options, debug } = params;
-  if (typeof credId !== 'string' || typeof origin !== 'string') {
+  if (typeof credId !== "string" || typeof origin !== "string") {
     throw new TypeError(INVALID_INPUT_MESSAGE);
   }
-  debug &&
-    console.log(
-      `%cFETCHING: %c/assertion/request/${credId}`,
-      'color: yellow',
-      'color: cyan',
-    );
+  if (debug)
+    console.log(`%cFETCHING: %c/assertion/request/${credId}`, "color: yellow", "color: cyan");
 
   // Use the passed-in options or fetch the options from the server
-  const credentialOptions =
-    typeof options !== 'undefined'
-      ? options // TODO: validate options
+  const credentialOptions: PublicKeyCredentialRequestOptions =
+    typeof options !== "undefined"
+      ? decodeOptions(options)
       : await postOptions(origin, credId).then(decodeOptions);
 
   if (credentialOptions.allowCredentials?.length === 0) {
-    debug && console.info('No registered credentials found.');
+    if (debug) console.info("No registered credentials found.");
     return null;
   }
 
-  debug &&
+  if (debug)
     console.log(
-      '%cGET_CREDENTIAL:%c navigator.credentials.get',
-      'color: yellow',
-      'color: cyan',
+      "%cGET_CREDENTIAL:%c navigator.credentials.get",
+      "color: yellow",
+      "color: cyan",
       options,
     );
 
   // Retrieve the credential from the Credential api
-  const credential = await navigator.credentials
-    .get({
-      publicKey: credentialOptions,
-    })
-    // Encode the credential for submitting to the service
-    .then(encodeCredential);
+  const credential = (await navigator.credentials.get({
+    publicKey: credentialOptions,
+  } as CredentialRequestOptions)) as PublicKeyCredential | null;
 
-  debug &&
+  if (!credential) throw new Error("No credential returned");
+
+  // Encode the credential for submitting to the service
+  const encodedCredential = encodeCredential(credential);
+
+  if (debug)
     console.log(
-      '%cPOSTING: %c/assertion/response',
-      'color: yellow',
-      'color: cyan',
-      credential,
+      "%cPOSTING: %c/assertion/response",
+      "color: yellow",
+      "color: cyan",
+      encodedCredential,
     );
 
   // Send the credential to the service
-  return postResponse(origin, credential);
+  return postResponse(origin, encodedCredential);
 }

@@ -12,7 +12,7 @@
  *
  * @protected
  */
-export const INVALID_INPUT_MESSAGE = 'Invalid input';
+export const INVALID_INPUT_MESSAGE = "Invalid input";
 
 /**
  * A constant string representing a default message for an invalid response.
@@ -21,7 +21,7 @@ export const INVALID_INPUT_MESSAGE = 'Invalid input';
  *
  * @protected
  */
-export const INVALID_RESPONSE_MESSAGE = 'Invalid response';
+export const INVALID_RESPONSE_MESSAGE = "Invalid response";
 /**
  * Represents the error message indicating that a credential-related action has failed.
  * This constant is typically used to signal or log failure scenarios where operations
@@ -29,7 +29,7 @@ export const INVALID_RESPONSE_MESSAGE = 'Invalid response';
  *
  * @protected
  */
-export const CREDENTIAL_ACTION_FAILURE = 'Credential action failed';
+export const CREDENTIAL_ACTION_FAILURE = "Credential action failed";
 
 /**
  * A constant string representing an error or validation message indicating that
@@ -40,17 +40,16 @@ export const CREDENTIAL_ACTION_FAILURE = 'Credential action failed';
  *
  * @protected
  */
-export const UNSIGNED_MESSAGE = 'Message must be signed';
+export const UNSIGNED_MESSAGE = "Message must be signed";
 
-export const AUTHENTICATOR_NOT_SUPPORTED_MESSAGE =
-  'Authenticator not supported';
-export const REQUEST_IS_MISSING_MESSAGE = 'Request id is required';
-export const REQUEST_IN_PROCESS_MESSAGE = 'Request in process';
-export const UNAUTHENTICATED_MESSAGE = 'Not authenticated';
-export const ORIGIN_IS_MISSING_MESSAGE = 'Origin is required';
+export const AUTHENTICATOR_NOT_SUPPORTED_MESSAGE = "Authenticator not supported";
+export const REQUEST_IS_MISSING_MESSAGE = "Request id is required";
+export const REQUEST_IN_PROCESS_MESSAGE = "Request in process";
+export const UNAUTHENTICATED_MESSAGE = "Not authenticated";
+export const ORIGIN_IS_MISSING_MESSAGE = "Origin is required";
 
 export class ServiceError extends Error {}
 
-export function isValidResponse(r: Response) {
+export function isValidResponse(r: Response): boolean {
   return r.ok && (r.status === 200 || r.status === 201);
 }

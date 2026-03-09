@@ -1,21 +1,21 @@
-import { bench } from 'vitest';
-import { createMocks } from '../test/test.config';
+import { bench } from "vitest";
+import { createMocks } from "../test/test.config";
 
 // Fixtures
-import requestParamFixtures from '../__fixtures__/assertion.request.param.fixtures.json';
-import requestResponseFixtures from '../__fixtures__/assertion.request.response.fixtures.json';
-import responseBodyFixtures from '../__fixtures__/assertion.response.body.fixtures.json';
+import requestParamFixtures from "../__fixtures__/assertion.request.param.fixtures.json";
+import requestResponseFixtures from "../__fixtures__/assertion.request.response.fixtures.json";
+import responseBodyFixtures from "../__fixtures__/assertion.response.body.fixtures.json";
 
 // Library
-import { assertion, fetch, encoder } from './assertion';
-import type { EncodedPublicKeyCredentialRequestOptions } from './assertion.encoder';
+import { assertion, fetch, encoder } from "./assertion";
+import type { EncodedPublicKeyCredentialRequestOptions } from "./assertion.encoder";
 
 // Setup Benchmarks
-const TEST_ORIGIN = 'http://localhost:5173';
+const TEST_ORIGIN = "http://localhost:5173";
 createMocks();
 
 bench(
-  'assertion',
+  "assertion",
   async () => {
     await assertion({
       origin: TEST_ORIGIN,
@@ -26,7 +26,7 @@ bench(
 );
 
 bench(
-  'assertion.fetch.postOptions',
+  "assertion.fetch.postOptions",
   async () => {
     await fetch.postOptions(TEST_ORIGIN, requestParamFixtures[0]);
   },
@@ -34,7 +34,7 @@ bench(
 );
 
 bench(
-  'assertion.fetch.postResponse',
+  "assertion.fetch.postResponse",
   async () => {
     await fetch.postResponse(
       TEST_ORIGIN,
@@ -45,7 +45,7 @@ bench(
 );
 
 bench(
-  'assertion.encoder.encodeCredential',
+  "assertion.encoder.encodeCredential",
   () => {
     encoder.encodeCredential(responseBodyFixtures[0]);
   },
@@ -53,7 +53,7 @@ bench(
 );
 
 bench(
-  'assertion.encoder.decodeOptions',
+  "assertion.encoder.decodeOptions",
   () => {
     encoder.decodeOptions(
       requestResponseFixtures[0] as unknown as EncodedPublicKeyCredentialRequestOptions,

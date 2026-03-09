@@ -1,7 +1,15 @@
-import nacl from 'tweetnacl';
-import { SignalClient } from './src/signal.js';
-import { toBase64URL } from './src/encoding.js';
-import { testAccount } from './test/test.account.js';
+import nacl from "tweetnacl";
+import { SignalClient } from "./src";
+import { toBase64URL } from "./src/encoding.js";
+const testAccount = {
+  addr: "IKMUKRWTOEJMMJD4MUAQWWB4C473DEHXLCYHJ4R3RZWZKPNE7E2ZTQ7VD4",
+  sk: new Uint8Array([
+    153, 99, 94, 233, 195, 182, 109, 64, 9, 200, 81, 184, 78, 219, 114, 95, 177, 210, 244, 157, 200,
+    206, 99, 196, 224, 196, 38, 72, 151, 81, 204, 245, 66, 153, 69, 70, 211, 113, 18, 198, 36, 124,
+    101, 1, 11, 88, 60, 23, 63, 177, 144, 247, 88, 176, 116, 242, 59, 142, 109, 149, 61, 164, 249,
+    53,
+  ]),
+};
 
 // The Signaling Client
 const client = new SignalClient(window.origin);
@@ -10,22 +18,22 @@ const RTC_CONFIGURATION = {
   iceServers: [
     {
       urls: [
-        'stun:stun.l.google.com:19302',
-        'stun:stun1.l.google.com:19302',
-        'stun:stun2.l.google.com:19302',
+        "stun:stun.l.google.com:19302",
+        "stun:stun1.l.google.com:19302",
+        "stun:stun2.l.google.com:19302",
       ],
     },
     {
       urls: [
-        'turn:global.turn.nodely.network:80?transport=tcp',
-        'turns:global.turn.nodely.network:443?transport=tcp',
-        'turn:eu.turn.nodely.io:80?transport=tcp',
-        'turns:eu.turn.nodely.io:443?transport=tcp',
-        'turn:us.turn.nodely.io:80?transport=tcp',
-        'turns:us.turn.nodely.io:443?transport=tcp',
+        "turn:global.turn.nodely.network:80?transport=tcp",
+        "turns:global.turn.nodely.network:443?transport=tcp",
+        "turn:eu.turn.nodely.io:80?transport=tcp",
+        "turns:eu.turn.nodely.io:443?transport=tcp",
+        "turn:us.turn.nodely.io:80?transport=tcp",
+        "turns:us.turn.nodely.io:443?transport=tcp",
       ],
-      username: import.meta.env.VITE_NODELY_TURN_USERNAME || 'username',
-      credential: import.meta.env.VITE_NODELY_TURN_CREDENTIAL || 'credential',
+      username: import.meta.env.VITE_NODELY_TURN_USERNAME || "username",
+      credential: import.meta.env.VITE_NODELY_TURN_CREDENTIAL || "credential",
     },
   ],
   iceCandidatePoolSize: 10,
@@ -35,7 +43,7 @@ const requestId = SignalClient.generateRequestId();
 // RequestId for a remote client
 let altRequestId = requestId;
 // Render the UI
-document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
+document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   <div>
     <div class="call-session">
         <div class="offer">
@@ -69,11 +77,11 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
  * Send a Message to the remote client
  */
 function sendMessage() {
-  const messages = document.querySelector('.messages') as HTMLDivElement;
-  const message = document.querySelector('#message') as HTMLInputElement;
+  const messages = document.querySelector(".messages") as HTMLDivElement;
+  const message = document.querySelector("#message") as HTMLInputElement;
   dc.send(message.value);
   messages.innerHTML += `<p class="local-message">${message.value}</p>`;
-  message.value = '';
+  message.value = "";
 }
 /**
  * Handle the data channel
@@ -81,11 +89,9 @@ function sendMessage() {
  */
 function handleDataChannel(dataChannel: RTCDataChannel) {
   globalThis.dc = dataChannel;
-  const messagesContainer = document.querySelector(
-    '.message-container',
-  ) as HTMLDivElement;
-  messagesContainer.classList.remove('hidden');
-  const messages = document.querySelector('.messages') as HTMLDivElement;
+  const messagesContainer = document.querySelector(".message-container") as HTMLDivElement;
+  messagesContainer.classList.remove("hidden");
+  const messages = document.querySelector(".messages") as HTMLDivElement;
   dc.onmessage = (e) => {
     messages.innerHTML += `<p class="remote-message">${e.data}</p>`;
   };
@@ -95,23 +101,23 @@ function handleDataChannel(dataChannel: RTCDataChannel) {
  */
 async function handleOfferClient() {
   // Peer to the remote client and await their offer
-  console.log('requestId', requestId);
-  client.peer(requestId, 'offer', RTC_CONFIGURATION).then(handleDataChannel);
+  console.log("requestId", requestId);
+  client.peer(requestId, "offer", RTC_CONFIGURATION).then(handleDataChannel);
   // Once the link message is received by the remote wallet, hide the offer
-  client.on('link-message', () => {
-    document.querySelector('.offer')!.classList.add('hidden');
+  client.on("link-message", () => {
+    document.querySelector(".offer")!.classList.add("hidden");
   });
 
   // Update the render
-  const image = document.querySelector('.logo') as HTMLImageElement;
+  const image = document.querySelector(".logo") as HTMLImageElement;
   image.src = await client.qrCode();
-  image.classList.toggle('hidden');
+  image.classList.toggle("hidden");
 
-  const deepLink = document.querySelector('#qr-link') as HTMLAnchorElement;
+  const deepLink = document.querySelector("#qr-link") as HTMLAnchorElement;
   deepLink.href = client.deepLink(requestId);
 
-  document.querySelector('#start')!.classList.add('hidden');
-  document.querySelector('#toggle')!.classList.add('hidden');
+  document.querySelector("#start")!.classList.add("hidden");
+  document.querySelector("#toggle")!.classList.add("hidden");
 }
 
 /**
@@ -126,10 +132,10 @@ async function handleSignChallenge() {
     async (challenge: Uint8Array) => ({
       requestId: altRequestId,
       origin: window.origin,
-      type: 'algorand',
+      type: "algorand",
       address: testAccount.addr,
       signature: toBase64URL(nacl.sign.detached(challenge, testAccount.sk)),
-      device: 'Demo Web Wallet',
+      device: "Demo Web Wallet",
     }),
     undefined,
     true,
@@ -137,21 +143,19 @@ async function handleSignChallenge() {
   // TODO: sign in with an existing credential
   //await client.assertion()
 
-  document.querySelector('.answer')!.classList.add('hidden');
+  document.querySelector(".answer")!.classList.add("hidden");
 
   // Create the Peer Connection and await the remote client's answer
-  client
-    .peer(altRequestId, 'answer', RTC_CONFIGURATION)
-    .then(handleDataChannel);
+  client.peer(altRequestId, "answer", RTC_CONFIGURATION).then(handleDataChannel);
 }
 
 // UI Functions
 function toggle() {
-  document.querySelector('.offer')!.classList.toggle('hidden');
-  document.querySelector('.answer')!.classList.toggle('hidden');
+  document.querySelector(".offer")!.classList.toggle("hidden");
+  document.querySelector(".answer")!.classList.toggle("hidden");
 }
 function handleAlternativeRequestId() {
-  altRequestId = document.querySelector('input')!.value;
+  altRequestId = document.querySelector("input")!.value;
 }
 
 // Globals

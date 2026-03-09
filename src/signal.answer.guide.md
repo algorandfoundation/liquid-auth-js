@@ -1,5 +1,5 @@
 ---
-title: 'Browser: Peer Answer'
+title: "Browser: Peer Answer"
 ---
 
 The answer client is used to respond to a remote client's offer.
@@ -18,7 +18,7 @@ Request IDs are given to the remote peer, usually as a deep-link encoded into a 
 This ID is used by the remote peer to authenticate the current client.
 
 ```typescript
-import { SignalClient } from '@algorandfoundation/liquid-client';
+import { SignalClient } from "@algorandfoundation/liquid-client";
 const requestId = SignalClient.generateRequestId();
 ```
 
@@ -26,12 +26,10 @@ const requestId = SignalClient.generateRequestId();
 
 ```typescript
 // Wait for a remote offer for the current request id
-client
-    .peer(requestId, 'offer')
-    .then(handleDataChannel)
+client.peer(requestId, "offer").then(handleDataChannel);
 
 // Display QR Code
-const blob = await client.qrCode()
+const blob = await client.qrCode();
 ```
 
 ## Data Channel
@@ -39,9 +37,9 @@ const blob = await client.qrCode()
 Handling the Datachannel can be done with the `@algorandfoundation/provider` library
 
 ```typescript
-import {encode as cborEncode, decode as cborDecode} from 'cbor-x';
-import {encode as msgpackEncode} from 'algorand-msgpack';
-import { v7 as uuidv7 } from 'uuid';
+import { encode as cborEncode, decode as cborDecode } from "cbor-x";
+import { encode as msgpackEncode } from "algorand-msgpack";
+import { v7 as uuidv7 } from "uuid";
 
 import {
   RequestMessageBuilder,
@@ -50,60 +48,56 @@ import {
   fromBase64URL,
 } from "@algorandfoundation/provider";
 
-
-let dc: RTCDataChannel
+let dc: RTCDataChannel;
 
 // Provider ID of the Wallet, otherwise it should be the default Liquid UUID
-const providerId = uuidv7()
+const providerId = uuidv7();
 
 // Create an encoded transaction using your algorand specific library
 const txns = [
   toBase64URL(
     // Replace this with Encoded Transaction
-    new Uint8Array(64)
-  )
-]
+    new Uint8Array(64),
+  ),
+];
 
 // UUID of the Message
-const messageId = uuidv7()
-const params = new SignTransactionsParamsBuilder()
-  .addProviderId(providerId)
-  .addTxns(txns)
-  .get()
+const messageId = uuidv7();
+const params = new SignTransactionsParamsBuilder().addProviderId(providerId).addTxns(txns).get();
 
 // Create the Request Message
 const request = new RequestMessageBuilder(messageId, "arc0027:sign_transactions:request")
   .addParams(params)
-  .get()
+  .get();
 
 // Send the Request Message
-dc.send(toBase64URL(cborEncode(request)))
+dc.send(toBase64URL(cborEncode(request)));
 
 // Wait for a response for the message
-dc.onmessage = async (evt: {data: string}) => {
-  const message = cborDecode(fromBase64URL(evt.data))
+dc.onmessage = async (evt: { data: string }) => {
+  const message = cborDecode(fromBase64URL(evt.data));
   // Handle message types and create response
 
-  if(message.reference === '"arc0027:sign_transactions:response'){
+  if (message.reference === '"arc0027:sign_transactions:response') {
     // Make sure it's the appropriate message we are attaching the signature to
-    if(message.requestId !== messageId) return
+    if (message.requestId !== messageId) return;
 
-    const encodedSignatures: string[] = message.params.stxns
+    const encodedSignatures: string[] = message.params.stxns;
 
     // Attach Signature Example:
-    const transactionsToSend: string[] = txns.map((encodedTxn, idx)=>{
+    const transactionsToSend: string[] = txns.map((encodedTxn, idx) => {
       // Getting the Transaction Bytes
-      const txnBytes = fromBase64URL(encodedTxn)
+      const txnBytes = fromBase64URL(encodedTxn);
 
       // Decode and attach the signature with the library you prefer:
-      const txn = decodeUnsignedTransaction(txnBytes)
-      return txn.attachSignature(fromBase64URL(encodedSignatures[idx]))
-    })
+      const txn = decodeUnsignedTransaction(txnBytes);
+      return txn.attachSignature(fromBase64URL(encodedSignatures[idx]));
+    });
 
     // Send the txns to the network:
-    for(const txn in transactionsToSend){
+    for (const txn in transactionsToSend) {
       const { txId } = await algod.sendRawTransaction(txn).do();
     }
   }
-}
+};
 ```
