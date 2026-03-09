@@ -148,11 +148,17 @@ describe('SignalClient', function () {
       type: 'offer',
       sdp: 'offer-sdp-fixture',
     };
-    socket.on('link', (payload, ack) => {
-      ack({
-        data: linkMessageFixture,
-      });
-    });
+    socket.on(
+      'link',
+      (
+        _payload: unknown,
+        ack: (options: { data: typeof linkMessageFixture }) => void,
+      ) => {
+        ack({
+          data: linkMessageFixture,
+        });
+      },
+    );
     // wait for an answer
     const result = client.peer(requestId, 'offer');
     expect(client.emit).toHaveBeenNthCalledWith(1, 'link', { requestId });

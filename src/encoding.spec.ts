@@ -37,11 +37,11 @@ test(`toBase64URL`, () => {
 });
 
 // Test Basic Inputs
-test(`decodeAddress(*) throws ${MALFORMED_ADDRESS_ERROR_MSG}`, function () {
+test(`decodeAddress(*) throws Error`, function () {
   expect(() =>
     // @ts-expect-error, required for testing
     decodeAddress(12345),
-  ).toThrow(new Error(MALFORMED_ADDRESS_ERROR_MSG));
+  ).toThrow();
 });
 // Algorand Address Tests
 test('addressEncoder', function () {
@@ -49,13 +49,11 @@ test('addressEncoder', function () {
     // #region decodeAddress
     const decoded = decodeAddress(fixture.encoded);
     // #endregion decodeAddress
-    expect(decoded).toEqual(new Uint8Array(fixture.publicKey));
+    expect(decoded.publicKey).toEqual(new Uint8Array(fixture.publicKey));
 
     const address = encodeAddress(new Uint8Array(fixture.publicKey));
     expect(address).toEqual(fixture.encoded);
 
-    expect(() => decodeAddress(fixture.encoded.slice(0, -4) + '====')).toThrow(
-      new Error(ALGORAND_ADDRESS_BAD_CHECKSUM_ERROR_MSG),
-    );
+    expect(() => decodeAddress(fixture.encoded.slice(0, -4) + '====')).toThrow();
   });
 });

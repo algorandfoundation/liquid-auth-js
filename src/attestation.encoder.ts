@@ -131,7 +131,7 @@ export function encodeCredential(
  */
 export function decodeOptions(options: any, liquidOptions: any) {
   const attestationOptions = { ...options };
-  attestationOptions.user.id = decodeAddress(liquidOptions.address);
+  attestationOptions.user.id = decodeAddress(liquidOptions.address).publicKey;
   attestationOptions.user.name = liquidOptions.address;
   attestationOptions.user.displayName = liquidOptions.address;
   attestationOptions.challenge = fromBase64Url(options.challenge);

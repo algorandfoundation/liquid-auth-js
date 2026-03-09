@@ -92,11 +92,10 @@
     "wait-on": "^8.0.3"
   },
   "dependencies": {
-    "canvas": "^2.11.2",
+    "@algorandfoundation/algokit-utils": "^10.0.0-alpha.40",
     "eventemitter3": "^5.0.1",
     "qr-code-styling": "^1.9.1",
     "socket.io-client": "^4.7.5",
-    "tweetnacl": "^1.0.3",
     "uuid": "^10.0.0"
   },
   "release": {
