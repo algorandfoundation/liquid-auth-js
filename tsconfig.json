@@ -26,5 +26,6 @@
     "allowImportingTsExtensions": true,
     "rewriteRelativeImportExtensions": true
   },
-  "include": ["src/**/*", "README.test.ts"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "build", "coverage", "docs", "examples", "scripts", "**/*.spec.ts", "**/*.test.ts", "**/*.bench.ts"],
 }

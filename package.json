@@ -54,8 +54,8 @@
     "test": "vitest",
     "test:browser": "vitest --browser.headless",
     "test:cov": "vitest run --coverage",
-    "typedoc": "typedoc --tsconfig tsconfig.app.json",
-    "typedoc:watch": "typedoc --watch --tsconfig tsconfig.app.json",
+    "typedoc": "typedoc",
+    "typedoc:watch": "typedoc --watch",
     "typedoc:serve": "nodemon --watch docs --exec \"http-server ./docs\"",
     "typedoc-dev": "concurrently \"npm:typedoc:*\"",
     "release": "semantic-release"

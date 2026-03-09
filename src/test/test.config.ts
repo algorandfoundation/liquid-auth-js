@@ -1,15 +1,15 @@
 import { vi, type Mock } from "vitest";
-import { fromBase64Url, toBase64URL } from "../src/encoding.js";
+import { fromBase64Url, toBase64URL } from "../encoding.js";
 import type { PublicKeyCredentialRequestOptions } from "@simplewebauthn/browser";
 
-import getRequestParamFixtures from "../__fixtures__/assertion.request.param.fixtures.json";
-import getRequestResponseFixtures from "../__fixtures__/assertion.request.response.fixtures.json";
-import getResponseBodyFixtures from "../__fixtures__/assertion.response.body.fixtures.json";
-import getResponseResponseFixtures from "../__fixtures__/assertion.response.response.fixtures.json";
+import getRequestParamFixtures from "../../__fixtures__/assertion.request.param.fixtures.json";
+import getRequestResponseFixtures from "../../__fixtures__/assertion.request.response.fixtures.json";
+import getResponseBodyFixtures from "../../__fixtures__/assertion.response.body.fixtures.json";
+import getResponseResponseFixtures from "../../__fixtures__/assertion.response.response.fixtures.json";
 
-import createRequestResponseFixtures from "../__fixtures__/attestation.request.response.fixtures.json";
-import createResponseBodyFixtures from "../__fixtures__/attestation.response.body.fixtures.json";
-import createResponseResponseFixtures from "../__fixtures__/attestation.response.response.fixtures.json";
+import createRequestResponseFixtures from "../../__fixtures__/attestation.request.response.fixtures.json";
+import createResponseBodyFixtures from "../../__fixtures__/attestation.response.body.fixtures.json";
+import createResponseResponseFixtures from "../../__fixtures__/attestation.response.response.fixtures.json";
 
 export function createMocks(): void {
   if (!globalThis.navigator?.credentials) {

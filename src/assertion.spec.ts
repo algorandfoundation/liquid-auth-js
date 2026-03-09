@@ -1,5 +1,5 @@
 import { describe, it, beforeAll, expect } from "vitest";
-import { createMocks } from "../test/test.config";
+import { createMocks } from "./test/test.config";
 // #region assertionImport
 import { assertion } from "@algorandfoundation/liquid-client/assertion";
 // #endregion assertionImport

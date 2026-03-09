@@ -1,8 +1,8 @@
 import { describe, it, beforeAll, expect } from "vitest";
-import { createMockFetch, createMocks } from "../test/test.config";
+import { createMockFetch, createMocks } from "./test/test.config";
 // #region assertionImport
 import { assertion } from "@algorandfoundation/liquid-client";
-import type { EncodedCredential } from "@algorandfoundation/liquid-client/assertion/encoder";
+import type { AuthenticationResponseJSON } from "@simplewebauthn/browser";
 // #endregion assertionImport
 
 import requestParamFixtures from "../__fixtures__/assertion.request.param.fixtures.json";
@@ -29,7 +29,7 @@ describe("assertion/fetch", async () => {
       publicKey: assertion.encoder.decodeOptions(encodedOptions),
     });
     // Encode the Credential for sending to the service
-    const encodedCredential: EncodedCredential = assertion.encoder.encodeCredential(credential);
+    const encodedCredential: AuthenticationResponseJSON = assertion.encoder.encodeCredential(credential);
     // #endregion guideCredentialGet
 
     // #region guideResponse
@@ -74,7 +74,7 @@ describe("assertion/fetch", async () => {
     });
     it("(FAIL) should not accept invalid response responses", async () => {
       await expect(() =>
-        assertion.fetch.postResponse("http://ORIGIN:0", {} as EncodedCredential),
+        assertion.fetch.postResponse("http://ORIGIN:0", {} as any),
       ).rejects.toThrow(INVALID_RESPONSE_MESSAGE);
     });
   });

@@ -6,7 +6,7 @@ import {
   REQUEST_IS_MISSING_MESSAGE,
   UNAUTHENTICATED_MESSAGE,
 } from "./errors";
-import { createMocks } from "../test/test.config";
+import { createMocks } from "./test/test.config";
 import type { LiquidExtensionOptions } from "./types";
 
 import getResponseResponseFixtures from "../__fixtures__/attestation.response.response.fixtures.json";

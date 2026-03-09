@@ -9,7 +9,7 @@ This project is an example Client for TypeScript for using the Liquid-Auth API.
 ## 📦 Install
 
 ```bash
-npm install algorandfoundation/liquid-auth-js --save
+npm install @algorandfoundation/liquid-client --save
 ```
 
 # 📝 Usage

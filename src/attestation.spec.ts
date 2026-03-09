@@ -1,5 +1,5 @@
 import { describe, it, beforeAll, expect } from "vitest";
-import { createMocks } from "../test/test.config";
+import { createMocks } from "./test/test.config";
 import type { LiquidExtensionOptions } from "./types";
 // #region import
 import { attestation } from "@algorandfoundation/liquid-client/attestation";
