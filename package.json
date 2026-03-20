@@ -13,8 +13,11 @@
   "license": "Apache-2.0",
   "author": "Algorand Foundation",
   "type": "module",
+  "files": [
+    "lib",
+    "src"
+  ],
   "main": "./lib/index.js",
-  "browser": "./liquid-client.esm.js",
   "types": "./lib/index.d.ts",
   "exports": {
     ".": {
