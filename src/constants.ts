@@ -59,7 +59,7 @@ export const DEFAULT_QR_CODE_OPTIONS: QRCodeOptions = {
   backgroundOptions: { color: "#ffffff" },
   // TODO: Host logo publicly
   image:
-    "https://algorandtechnologies.com/assets/media-kit/logos/logo-marks/png/algorand_logo_mark_black.png",
+    "https://raw.githubusercontent.com/algorandfoundation/liquid-auth-js/refs/heads/main/public/logo.png",
   cornersSquareOptions: {
     color: "#000000",
     gradient: {
