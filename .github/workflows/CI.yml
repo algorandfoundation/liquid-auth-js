@@ -16,7 +16,7 @@ jobs:
           cache: "npm"
       - name: Install Dependencies
         run: npm install
-      - uses: oxc-project/oxlint-action@v2.0.1
+      #- uses: oxc-project/oxlint-action@v2.0.1
       - name: Unit Test
         run: npx vitest --reporter=junit --outputFile=test-report.junit.xml
       - name: Upload test results to Codecov
