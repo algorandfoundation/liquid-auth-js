@@ -1,3 +1,10 @@
+# [1.0.0-canary.5](https://github.com/algorandfoundation/liquid-auth-js/compare/v1.0.0-canary.4...v1.0.0-canary.5) (2026-03-20)
+
+
+### Bug Fixes
+
+* include dist assets ([05655e7](https://github.com/algorandfoundation/liquid-auth-js/commit/05655e7262442020a27c96445785e72f55b47c76))
+
 # [1.0.0-canary.4](https://github.com/algorandfoundation/liquid-auth-js/compare/v1.0.0-canary.3...v1.0.0-canary.4) (2026-03-20)
 
 
