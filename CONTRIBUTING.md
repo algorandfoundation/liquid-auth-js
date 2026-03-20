@@ -5,11 +5,13 @@ This project is an example Client for TypeScript for using the Liquid-Auth API.
 ## Getting Started
 
 #### Clone the project
+
 ```bash
 git clone git@github.com:algorandfoundation/liquid-auth-js.git
 ```
 
 #### Install dependencies
+
 ```bash
 npm install
 ```
@@ -25,15 +27,16 @@ The service needs a valid SSL certificate to test all of the features. You can u
 Sign up for a free account at [ngrok](https://ngrok.com/) and follow the instructions to get your <NGROK_AUTH_TOKEN> and <NGROK_STATIC_DOMAIN>.
 
 #### Configure NGROK
+
 ngrok will ask you to add your auth token to your configuration file.
 
-``` bash
+```bash
 ngrok config add-authtoken <NGROK_AUTH_TOKEN>
 ```
 
 Will then ask you to deploy your static domain, make sure to change the port to **5137** like this:
 
-``` bash
+```bash
 ngrok http --domain=<NGROK_STATIC_DOMAIN> 5173
 ```
 
@@ -47,7 +50,9 @@ ORIGIN=https://<NGROK_STATIC_DOMAIN>
 ```
 
 ### Start services
+
 Make sure to [login to ghcr.io](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-with-a-personal-access-token-classic) with your GitHub credentials to pull the images.
+
 ```bash
 docker compose up -d
 ```
@@ -55,6 +60,7 @@ docker compose up -d
 ### Start the build watcher
 
 Watch for changes and rebuild the library
+
 ```bash
 npm run dev
 ```

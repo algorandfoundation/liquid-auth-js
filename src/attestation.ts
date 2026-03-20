@@ -5,25 +5,20 @@
  * @packageDocumentation
  * @document ./attestation.guide.md
  */
-import { fromBase64Url } from './encoding.js';
-import {
-  AUTHENTICATOR_NOT_SUPPORTED_MESSAGE,
-  INVALID_INPUT_MESSAGE,
-} from './errors.js';
-import {
-  DEFAULT_ATTESTATION_OPTIONS,
-  postOptions,
-  postResponse,
-} from './attestation.fetch.js';
-import { decodeOptions, encodeCredential } from './attestation.encoder.js';
+import { fromBase64Url } from "./encoding.js";
+import { AUTHENTICATOR_NOT_SUPPORTED_MESSAGE, INVALID_INPUT_MESSAGE } from "./errors.js";
+import { DEFAULT_ATTESTATION_OPTIONS, postOptions, postResponse } from "./attestation.fetch.js";
+import { decodeOptions, encodeCredential } from "./attestation.encoder.js";
+import type { User } from "./types.ts";
+import type { LiquidExtensionOptions } from "./types.ts";
 
-export * as fetch from './attestation.fetch.js';
-export * as encoder from './attestation.encoder.js';
+export * as fetch from "./attestation.fetch.js";
+export * as encoder from "./attestation.encoder.js";
 
-type AttestationOptions = {
+export type AttestationOptions = {
   origin: string;
-  onChallenge: (options: any) => any;
-  options?: any;
+  onChallenge: (bytes: Uint8Array) => Promise<LiquidExtensionOptions>;
+  options?: object;
   debug?: boolean;
 };
 
@@ -38,48 +33,35 @@ type AttestationOptions = {
  * @param {boolean} [params.debug=false] - Flag to enable or disable debug logging.
  * @return {Promise<any>} The response from the server after completing the attestation process.
  */
-export async function attestation(params: AttestationOptions) {
-  if (typeof navigator === 'undefined')
-    throw new Error(AUTHENTICATOR_NOT_SUPPORTED_MESSAGE);
-  if (typeof params === 'undefined') throw new Error(INVALID_INPUT_MESSAGE);
-  const {
-    origin,
-    onChallenge,
-    options = DEFAULT_ATTESTATION_OPTIONS,
-    debug,
-  } = params;
-  if (typeof origin !== 'string') {
+export async function attestation(params: AttestationOptions): Promise<User> {
+  if (typeof navigator === "undefined") throw new Error(AUTHENTICATOR_NOT_SUPPORTED_MESSAGE);
+  if (typeof params === "undefined") throw new Error(INVALID_INPUT_MESSAGE);
+  const { origin, onChallenge, options = DEFAULT_ATTESTATION_OPTIONS, debug } = params;
+  if (typeof origin !== "string") {
     throw new TypeError(INVALID_INPUT_MESSAGE);
   }
-  debug &&
-    console.log(
-      `%cFETCHING: %c/attestation/request/`,
-      'color: yellow',
-      'color: cyan',
-    );
+  if (debug) console.log(`%cFETCHING: %c/attestation/request/`, "color: yellow", "color: cyan");
 
   // Fetch the options from the service
   const credentialOptions = await postOptions(origin, options);
 
-  debug &&
+  if (debug)
     console.log(
-      '%cHANDLE_SIGNATURE:%c onChallenge',
-      'color: yellow',
-      'color: cyan',
-      '*'.repeat(credentialOptions.challenge.length),
+      "%cHANDLE_SIGNATURE:%c onChallenge",
+      "color: yellow",
+      "color: cyan",
+      "*".repeat(credentialOptions.challenge.length),
     );
 
   // Handle the additional signature challenge
-  const liquidOptions = await onChallenge(
-    fromBase64Url(credentialOptions.challenge),
-  );
+  const liquidOptions = await onChallenge(fromBase64Url(credentialOptions.challenge));
 
-  debug &&
+  if (debug)
     console.log(
-      '%cDECODE:%c assertion.encoder.decodeOptions',
-      'color: yellow',
-      'color: cyan',
-      '*'.repeat(liquidOptions.signature.length),
+      "%cDECODE:%c assertion.encoder.decodeOptions",
+      "color: yellow",
+      "color: cyan",
+      "*".repeat(liquidOptions.signature.length),
     );
 
   // Decode the options and merge the extension
@@ -89,21 +71,21 @@ export async function attestation(params: AttestationOptions) {
   const credential = await navigator.credentials
     .create({
       publicKey: mergedOptions,
-    })
+    } as CredentialCreationOptions)
     // Encode the credential for submitting to the service
-    .then(encodeCredential);
+    .then((credential) => {
+      if (!credential) throw new Error("No credential returned");
+      if (!credential.type) throw new Error("No credential type returned");
+      if (credential.type !== "public-key") throw new Error("Invalid credential type");
+      return encodeCredential(credential as PublicKeyCredential);
+    });
 
   // Attach the extension results
   // TODO: this should be provided by the CredentialProvider Service
-  credential.clientExtensionResults = { liquid: liquidOptions } as any;
+  (credential as any).clientExtensionResults = { liquid: liquidOptions };
 
-  debug &&
-    console.log(
-      '%cPOSTING: %c/attestation/response',
-      'color: yellow',
-      'color: cyan',
-      credential,
-    );
+  if (debug)
+    console.log("%cPOSTING: %c/attestation/response", "color: yellow", "color: cyan", credential);
 
   // Send the credential to the service
   return await postResponse(origin, credential);

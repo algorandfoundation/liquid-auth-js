@@ -6,7 +6,14 @@
  * @protected
  */
 
-import { Options as QRCodeOptions } from 'qr-code-styling';
+/**
+ * Module For Defaults
+ *
+ *
+ * @packageDocumentation
+ * @protected
+ */
+import type { Options as QRCodeOptions } from "qr-code-styling";
 
 /**
  * DEFAULT_FETCH_OPTIONS is a constant object used as a default configuration
@@ -25,54 +32,54 @@ import { Options as QRCodeOptions } from 'qr-code-styling';
  * @internal
  */
 export const DEFAULT_FETCH_OPTIONS = {
-  method: 'POST',
+  method: "POST",
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 };
 
 export const DEFAULT_QR_CODE_OPTIONS: QRCodeOptions = {
   width: 500,
   height: 500,
-  type: 'svg',
-  data: 'liquid://',
+  type: "svg",
+  data: "liquid://",
   margin: 25,
   imageOptions: { hideBackgroundDots: true, imageSize: 0.4, margin: 15 },
   dotsOptions: {
-    type: 'extra-rounded',
+    type: "extra-rounded",
     gradient: {
-      type: 'radial',
+      type: "radial",
       rotation: 0,
       colorStops: [
-        { offset: 0, color: '#9966ff' },
-        { offset: 1, color: '#332257' },
+        { offset: 0, color: "#9966ff" },
+        { offset: 1, color: "#332257" },
       ],
     },
   },
-  backgroundOptions: { color: '#ffffff' },
+  backgroundOptions: { color: "#ffffff" },
   // TODO: Host logo publicly
   image:
-    'https://algorandtechnologies.com/assets/media-kit/logos/logo-marks/png/algorand_logo_mark_black.png',
+    "https://raw.githubusercontent.com/algorandfoundation/liquid-auth-js/refs/heads/main/public/logo.png",
   cornersSquareOptions: {
-    color: '#000000',
+    color: "#000000",
     gradient: {
-      type: 'linear',
+      type: "linear",
       rotation: 0,
       colorStops: [
-        { offset: 0, color: '#332257' },
-        { offset: 1, color: '#040908' },
+        { offset: 0, color: "#332257" },
+        { offset: 1, color: "#040908" },
       ],
     },
   },
   cornersDotOptions: {
-    type: 'dot',
-    color: '#000000',
+    type: "dot",
+    color: "#000000",
     gradient: {
-      type: 'linear',
+      type: "linear",
       rotation: 0,
       colorStops: [
-        { offset: 0, color: '#000000' },
-        { offset: 1, color: '#000000' },
+        { offset: 0, color: "#000000" },
+        { offset: 1, color: "#000000" },
       ],
     },
   },

@@ -1,6 +1,10 @@
-import { DEFAULT_FETCH_OPTIONS } from './constants.js';
-import { isValidResponse } from './errors.js';
-import { EncodedAttestationCredential } from './attestation.encoder.js';
+import { DEFAULT_FETCH_OPTIONS } from "./constants.js";
+import { INVALID_INPUT_MESSAGE, INVALID_RESPONSE_MESSAGE, isValidResponse } from "./errors.js";
+import type { User } from "./types.ts";
+import type {
+  PublicKeyCredentialCreationOptionsJSON,
+  RegistrationResponseJSON,
+} from "@simplewebauthn/browser";
 
 /**
  * The `DEFAULT_ATTESTATION_OPTIONS` variable defines the default configuration
@@ -18,10 +22,10 @@ import { EncodedAttestationCredential } from './attestation.encoder.js';
  * @internal
  */
 export const DEFAULT_ATTESTATION_OPTIONS = {
-  attestationType: 'none',
+  attestationType: "none",
   authenticatorSelection: {
-    authenticatorAttachment: 'platform',
-    userVerification: 'required',
+    authenticatorAttachment: "platform",
+    userVerification: "required",
     requireResidentKey: false,
   },
   extensions: {
@@ -39,14 +43,17 @@ export const DEFAULT_ATTESTATION_OPTIONS = {
  */
 export async function postOptions(
   origin: string,
-  options = DEFAULT_ATTESTATION_OPTIONS,
-) {
+  options: object = DEFAULT_ATTESTATION_OPTIONS,
+): Promise<PublicKeyCredentialCreationOptionsJSON> {
+  if (typeof origin !== "string" || typeof options !== "object") {
+    throw new TypeError(INVALID_INPUT_MESSAGE);
+  }
   return await fetch(`${origin}/attestation/request`, {
     ...DEFAULT_FETCH_OPTIONS,
     body: JSON.stringify(options),
   }).then((r) => {
-    if (!isValidResponse(r)) throw new Error(r.statusText);
-    return r.json();
+    if (!isValidResponse(r)) throw new Error(INVALID_RESPONSE_MESSAGE);
+    return r.json() as Promise<PublicKeyCredentialCreationOptionsJSON>;
   });
 }
 
@@ -59,13 +66,16 @@ export async function postOptions(
  */
 export async function postResponse(
   origin: string,
-  credential: EncodedAttestationCredential,
-) {
+  credential: RegistrationResponseJSON,
+): Promise<User> {
+  if (typeof origin !== "string" || typeof credential !== "object") {
+    throw new TypeError(INVALID_INPUT_MESSAGE);
+  }
   return await fetch(`${origin}/attestation/response`, {
     ...DEFAULT_FETCH_OPTIONS,
     body: JSON.stringify(credential),
   }).then((r) => {
-    if (!isValidResponse(r)) throw new Error(r.statusText);
+    if (!isValidResponse(r)) throw new Error(INVALID_RESPONSE_MESSAGE);
     return r.json();
   });
 }

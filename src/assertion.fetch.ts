@@ -1,11 +1,10 @@
-import {
-  INVALID_INPUT_MESSAGE,
-  INVALID_RESPONSE_MESSAGE,
-  isValidResponse,
-} from './errors.js';
-import { DEFAULT_FETCH_OPTIONS } from './constants.js';
-import { EncodedPublicKeyCredentialRequestOptions } from './assertion.encoder.js';
-import { EncodedCredential } from './assertion.encoder.js';
+import { INVALID_INPUT_MESSAGE, INVALID_RESPONSE_MESSAGE, isValidResponse } from "./errors.js";
+import { DEFAULT_FETCH_OPTIONS } from "./constants.js";
+import type { User } from "./types.ts";
+import type {
+  AuthenticationResponseJSON,
+  PublicKeyCredentialRequestOptionsJSON,
+} from "@simplewebauthn/browser";
 
 /**
  * Fetch Assertion Options
@@ -18,8 +17,11 @@ import { EncodedCredential } from './assertion.encoder.js';
  * @todo: Generate Typed JSON-RPC clients from Swagger/OpenAPI
  * @module fetch
  */
-export async function postOptions(origin: string, credId: string) {
-  if (typeof origin !== 'string' || typeof credId !== 'string') {
+export async function postOptions(
+  origin: string,
+  credId: string,
+): Promise<PublicKeyCredentialRequestOptionsJSON> {
+  if (typeof origin !== "string" || typeof credId !== "string") {
     throw new TypeError(INVALID_INPUT_MESSAGE);
   }
   return await fetch(`${origin}/assertion/request/${credId}`, {
@@ -28,7 +30,7 @@ export async function postOptions(origin: string, credId: string) {
     if (!isValidResponse(r)) {
       throw new Error(INVALID_RESPONSE_MESSAGE);
     }
-    return r.json() as Promise<EncodedPublicKeyCredentialRequestOptions>;
+    return r.json() as Promise<PublicKeyCredentialRequestOptionsJSON>;
   });
 }
 
@@ -43,9 +45,9 @@ export async function postOptions(origin: string, credId: string) {
  */
 export async function postResponse(
   origin: string,
-  credential: EncodedCredential,
-) {
-  if (typeof origin !== 'string' || typeof credential !== 'object') {
+  credential: AuthenticationResponseJSON,
+): Promise<User> {
+  if (typeof origin !== "string" || typeof credential !== "object") {
     // TODO: instance check for SerializedCredential
     throw new TypeError(INVALID_INPUT_MESSAGE);
   }

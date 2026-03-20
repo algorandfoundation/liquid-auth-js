@@ -2,14 +2,12 @@
   "name": "@algorandfoundation/liquid-client",
   "version": "1.0.0-canary.3",
   "description": "Connect to a Liquid Auth service",
-  "main": "./lib/index.js",
-  "types": "./lib/index.d.ts",
-  "browser": "./liquid-client.esm.js",
+  "license": "Apache-2.0",
+  "author": "Algorand Foundation",
   "type": "module",
-  "publishConfig": {
-    "provenance": true,
-    "access": "public"
-  },
+  "main": "./lib/index.js",
+  "browser": "./liquid-client.esm.js",
+  "types": "./lib/index.d.ts",
   "exports": {
     ".": {
       "types": "./lib/index.d.ts",
@@ -40,23 +38,35 @@
       "default": "./lib/encoding.js"
     }
   },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "scripts": {
     "dev": "wait-on -t 3s http://localhost:3000/auth/session && vite",
     "build": "vite build",
     "build:docs": "typedoc --plugin typedoc-plugin-markdown --out docs src src/client",
-    "lint": "eslint --fix src",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
     "bench": "vitest bench",
     "test": "vitest",
     "test:browser": "vitest --browser.headless",
     "test:cov": "vitest run --coverage",
-    "typedoc": "typedoc --tsconfig tsconfig.app.json",
-    "typedoc:watch": "typedoc --watch --tsconfig tsconfig.app.json",
+    "typedoc": "typedoc",
+    "typedoc:watch": "typedoc --watch",
     "typedoc:serve": "nodemon --watch docs --exec \"http-server ./docs\"",
     "typedoc-dev": "concurrently \"npm:typedoc:*\"",
     "release": "semantic-release"
   },
-  "author": "Algorand Foundation",
-  "license": "Apache-2.0",
+  "dependencies": {
+    "@algorandfoundation/algokit-utils": "^10.0.0-alpha.40",
+    "eventemitter3": "^5.0.1",
+    "qr-code-styling": "^1.9.2",
+    "socket.io-client": "^4.7.5",
+    "uuid": "^10.0.0"
+  },
   "devDependencies": {
     "@codecov/vite-plugin": "^1.9.0",
     "@semantic-release/changelog": "^6.0.3",
@@ -65,39 +75,28 @@
     "@semantic-release/github": "^10.0.3",
     "@semantic-release/npm": "^12.0.0",
     "@semantic-release/release-notes-generator": "^13.0.0",
+    "@simplewebauthn/browser": "^13.2.2",
     "@types/qrcode": "^1.5.5",
     "@types/uuid": "^10.0.0",
-    "@typescript-eslint/eslint-plugin": "^7.8.0",
-    "@typescript-eslint/parser": "^7.8.0",
     "@vitest/browser": "^3.0.8",
     "@vitest/coverage-v8": "^3.0.8",
     "concurrently": "^9.1.2",
-    "eslint": "^8.57.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-prettier": "^5.1.3",
-    "eslint-plugin-tsdoc": "^0.2.17",
     "glob": "^11.0.1",
     "http-server": "^14.1.1",
     "nodemon": "^3.1.9",
+    "oxfmt": "^0.36.0",
+    "oxlint": "^1.51.0",
     "playwright": "^1.51.0",
     "semantic-release": "^23.0.8",
     "socket.io-mock-ts": "^1.0.2",
-    "typedoc": "^0.27.9",
-    "typedoc-plugin-markdown": "4.4.2",
-    "typescript": "^5.8.2",
+    "typedoc": "^0.28.17",
+    "typedoc-plugin-markdown": "^4.10.0",
+    "typescript": "^5.9.3",
     "vite": "^6.2.2",
     "vite-bundle-analyzer": "^0.18.0",
     "vite-plugin-dts": "^4.5.3",
     "vitest": "^3.0.8",
     "wait-on": "^8.0.3"
-  },
-  "dependencies": {
-    "canvas": "^2.11.2",
-    "eventemitter3": "^5.0.1",
-    "qr-code-styling": "^1.9.1",
-    "socket.io-client": "^4.7.5",
-    "tweetnacl": "^1.0.3",
-    "uuid": "^10.0.0"
   },
   "release": {
     "plugins": [

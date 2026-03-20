@@ -1,5 +1,5 @@
 ---
-title: 'Browser: Authentication'
+title: "Browser: Authentication"
 ---
 
 Authenticate an existing [Passkey](https://liquidauth.com/guides/concepts/#passkeys) with the [Service](/guides/server/introduction).
@@ -12,6 +12,7 @@ Authenticate an existing [Passkey](https://liquidauth.com/guides/concepts/#passk
 The {@link assertion.assertion | assertion} method is exported as a quick way to use an existing passkey
 
 #### Quick Start:
+
 {@includeCode ./assertion.spec.ts#assertionImport,quickStart}
 
 ## ⚒️ Manual Integration
@@ -32,7 +33,7 @@ Manually fetching the `Options` from the service using {@link assertion.fetch.po
 ### 🎉 Retrieving
 
 To retrieve a passkey, decode the options from the service using {@link assertion.encoder.decodeOptions} and submit it
-to the Credential API. 
+to the Credential API.
 
 The Credential must be encoded using the using {@link assertion.encoder.encodeCredential} method before
 being submitted the response to the server
