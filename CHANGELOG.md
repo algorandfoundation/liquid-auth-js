@@ -1,3 +1,16 @@
+# [1.0.0-canary.4](https://github.com/algorandfoundation/liquid-auth-js/compare/v1.0.0-canary.3...v1.0.0-canary.4) (2026-03-20)
+
+
+### Bug Fixes
+
+* default logo url ([39272d7](https://github.com/algorandfoundation/liquid-auth-js/commit/39272d78372a703831cc946f0766deee92065426))
+
+
+### Features
+
+* migrate to algokit-utils ([99f9b77](https://github.com/algorandfoundation/liquid-auth-js/commit/99f9b77eca74927d070dbc1a24980b318d9714fe))
+* update packages, migrate to oxc and get types from simpleauthn ([60b830c](https://github.com/algorandfoundation/liquid-auth-js/commit/60b830cb295f3ee4937f34e911255e84455fd7ce))
+
 # [1.0.0-canary.3](https://github.com/algorandfoundation/liquid-auth-js/compare/v1.0.0-canary.2...v1.0.0-canary.3) (2024-12-18)
 
 ### Bug Fixes
