@@ -15,7 +15,7 @@ npm install @algorandfoundation/liquid-client --save
 # 📝 Usage
 
 ```typescript
-import { SignalClient } from "@algorandfoundation/liquid-client";
+import { SignalClient, encoding, attestation, assertion } from "@algorandfoundation/liquid-client";
 const client = new SignalClient(window.origin);
 ```
 
@@ -28,22 +28,26 @@ See the [liquid-auth documentation](https://liquidauth.com/clients/browser/intro
 ```typescript
 const testAccount = algosdk.generateAccount();
 // Sign in to the service with a new credential and wallet
-await client.attestation(async (challenge: Uint8Array) => ({
-  type: "algorand", // The type of signature and public key
-  address: testAccount.addr, // The address of the account
-  signature: toBase64URL(nacl.sign.detached(challenge, testAccount.sk)), // The signature of the challenge
-  requestId: "019097ff-bb8d-7f68-9062-89543625aca5", // Optionally authenticate a remote peer
-  device: "Demo Web Wallet", // Optional device name
-}));
+await client.attestation({
+  origin: window.origin,
+  onChallenge: async (challenge: Uint8Array) => ({
+    type: "algorand", // The type of signature and public key
+    address: testAccount.addr, // The address of the account
+    signature: encoding.toBase64URL(nacl.sign.detached(challenge, testAccount.sk)), // The signature of the challenge
+    requestId: "019097ff-bb8d-7f68-9062-89543625aca5", // Optionally authenticate a remote peer
+    device: "Demo Web Wallet", // Optional device name
+  }),
+});
 ```
 
 #### Sign in with an existing account
 
 ```typescript
-await client.assertion(
-  credentialId, // Some known credential ID
-  { requestId: "019097ff-bb8d-7f68-9062-89543625aca5" }, // Optional requestId to link
-);
+await client.assertion({
+  origin: window.origin,
+  credId: credentialId, // Some known credential ID
+  options: { requestId: "019097ff-bb8d-7f68-9062-89543625aca5" }, // Optional requestId to link
+});
 ```
 
 #### Peering with a remote client
