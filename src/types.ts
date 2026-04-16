@@ -87,3 +87,15 @@ export type LiquidExtensionOptions = {
    */
   device?: string;
 };
+
+/**
+ * A basic socket interface that can be used with other libraries other than socket.io-client.
+ */
+export interface LiquidSocket {
+  id?: string;
+  on(event: string, listener: (...args: any[]) => void): this;
+  once(event: string, listener: (...args: any[]) => void): this;
+  emit(event: string, ...args: any[]): this;
+  disconnect(): this;
+  removeAllListeners(event?: string): this;
+}

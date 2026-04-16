@@ -5,7 +5,7 @@
  * @document ./signal.offer.guide.md
  * @document ./signal.answer.guide.md
  */
-import { io, type ManagerOptions, type Socket, type SocketOptions } from "socket.io-client";
+import { io, type ManagerOptions, type SocketOptions } from "socket.io-client";
 import QRCodeStyling, { type Options as QRCodeOptions } from "qr-code-styling";
 import { EventEmitter } from "eventemitter3";
 import { v7 as uuidv7 } from "uuid";
@@ -21,8 +21,7 @@ import {
   UNAUTHENTICATED_MESSAGE,
 } from "./errors.ts";
 import { DEFAULT_ATTESTATION_OPTIONS } from "./attestation.fetch.ts";
-import type { User } from "./types.ts";
-import type { LiquidExtensionOptions } from "./types.ts";
+import type { User, LiquidExtensionOptions, LiquidSocket } from "./types.ts";
 
 export type LinkMessage = {
   credId?: string;
@@ -68,7 +67,7 @@ export class SignalClient extends EventEmitter {
   requestId: string | undefined;
   peerClient: RTCPeerConnection | undefined;
   qrCodeOptions: QRCodeOptions = DEFAULT_QR_CODE_OPTIONS;
-  socket: Socket;
+  socket: LiquidSocket;
 
   /**
    *
@@ -77,11 +76,17 @@ export class SignalClient extends EventEmitter {
    */
   constructor(
     url: string,
-    options: Partial<ManagerOptions & SocketOptions> = { autoConnect: true },
+    options: Partial<ManagerOptions & SocketOptions & { socket: LiquidSocket }> = {
+      autoConnect: true,
+    },
   ) {
     super();
     this.url = url;
-    this.socket = io(url, options);
+    if (options && "socket" in options && options.socket) {
+      this.socket = options.socket;
+    } else {
+      this.socket = io(url, options);
+    }
 
     this.socket.on("connect", () => {
       this.emit("connect", this.socket.id);
