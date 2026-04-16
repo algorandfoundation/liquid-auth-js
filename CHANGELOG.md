@@ -1,3 +1,10 @@
+# [1.0.0-canary.6](https://github.com/algorandfoundation/liquid-auth-js/compare/v1.0.0-canary.5...v1.0.0-canary.6) (2026-04-16)
+
+
+### Features
+
+* allows passing in a custom socket interface ([a0e6ef5](https://github.com/algorandfoundation/liquid-auth-js/commit/a0e6ef5dd6fa47bc4899cf78eab7a3f69d7cf965))
+
 # [1.0.0-canary.5](https://github.com/algorandfoundation/liquid-auth-js/compare/v1.0.0-canary.4...v1.0.0-canary.5) (2026-03-20)
 
 
