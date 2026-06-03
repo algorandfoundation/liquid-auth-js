@@ -66,6 +66,8 @@ describe("SignalClient", function () {
   beforeEach(async () => {
     createMocks();
     client = new SignalClient(url);
+    // @ts-expect-error accessing private property for testing
+    await client._socketPromise;
     client.emit = vi.fn();
   });
   afterEach(() => {
@@ -149,6 +151,8 @@ describe("SignalClient", function () {
     );
     // wait for an answer
     const result = client.peer(requestId, "offer");
+    await Promise.resolve();
+    await Promise.resolve();
     expect(client.emit).toHaveBeenNthCalledWith(1, "link", { requestId });
     expect(client.emit).toHaveBeenNthCalledWith(2, "link-message", linkMessageFixture);
     // Wait for the next tick
@@ -213,6 +217,8 @@ describe("SignalClient", function () {
     );
     // wait for an answer
     const result = client.peer(requestId, "offer");
+    await Promise.resolve();
+    await Promise.resolve();
     expect(client.emit).toHaveBeenNthCalledWith(1, "link", { requestId });
     expect(client.emit).toHaveBeenNthCalledWith(2, "link-message", linkMessageFixture);
     // Wait for the next tick
@@ -275,6 +281,8 @@ describe("SignalClient", function () {
     client.authenticated = true;
     // wait for an answer
     const result = client.peer(requestId, "answer");
+    await Promise.resolve();
+    await Promise.resolve();
 
     // @ts-expect-error, access private peerClient for testing
     client.peerClient.onicecandidate({
@@ -331,6 +339,8 @@ describe("SignalClient", function () {
     client.authenticated = true;
     // wait for an answer
     const result = client.peer(requestId, "answer");
+    await Promise.resolve();
+    await Promise.resolve();
 
     // @ts-expect-error, access private peerClient for testing
     client.peerClient.onicecandidate({
@@ -390,6 +400,7 @@ describe("SignalClient", function () {
       },
     );
     const result = client.link(requestId);
+    await Promise.resolve();
     expect(client.emit).toHaveBeenNthCalledWith(1, "link", { requestId });
     await expect(result).resolves.toEqual(linkMessageFixture);
     expect(client.emit).toHaveBeenNthCalledWith(2, "link-message", linkMessageFixture);
@@ -408,14 +419,16 @@ describe("SignalClient", function () {
       sdp: "offer-sdp-fixture",
     };
     const result = client.signal("offer");
+    await Promise.resolve();
     expect(client.emit).toHaveBeenNthCalledWith(1, "signal", { type: "offer" });
     socket.emit("offer-description", sdpFixture.sdp);
     await expect(result).resolves.toEqual(sdpFixture);
     expect(client.emit).toHaveBeenNthCalledWith(2, "offer-description", sdpFixture);
   });
 
-  test("close", function () {
+  test("close", async function () {
     client.close(true);
+    await Promise.resolve();
     expect(client.socket.connected).toBe(false);
     client.close();
     expect(client.requestId).toBeUndefined();

@@ -5,8 +5,8 @@
  * @document ./signal.offer.guide.md
  * @document ./signal.answer.guide.md
  */
-import { io, type ManagerOptions, type SocketOptions } from "socket.io-client";
-import QRCodeStyling, { type Options as QRCodeOptions } from "qr-code-styling";
+import type { ManagerOptions, SocketOptions } from "socket.io-client";
+import type { Options as QRCodeOptions } from "qr-code-styling";
 import { EventEmitter } from "eventemitter3";
 import { v7 as uuidv7 } from "uuid";
 
@@ -36,6 +36,7 @@ export async function generateQRCode(
   if (typeof requestId === "undefined") throw new Error(REQUEST_IS_MISSING_MESSAGE);
   qrCodeOptions.data = generateDeepLink(url, requestId);
 
+  const { default: QRCodeStyling } = await import('qr-code-styling');
   const qrCode = new QRCodeStyling(qrCodeOptions);
   return await qrCode.getRawData("png").then((blob) => {
     if (!blob) throw new TypeError("Could not get qrcode blob");
@@ -67,7 +68,8 @@ export class SignalClient extends EventEmitter {
   requestId: string | undefined;
   peerClient: RTCPeerConnection | undefined;
   qrCodeOptions: QRCodeOptions = DEFAULT_QR_CODE_OPTIONS;
-  socket: LiquidSocket;
+  socket!: LiquidSocket;
+  private _socketPromise?: Promise<void>;
 
   /**
    *
@@ -84,10 +86,14 @@ export class SignalClient extends EventEmitter {
     this.url = url;
     if (options && "socket" in options && options.socket) {
       this.socket = options.socket;
+      this._setupSocket();
+      this._socketPromise = Promise.resolve();
     } else {
-      this.socket = io(url, options);
+      this._socketPromise = this._initSocket(url, options);
     }
+  }
 
+  private _setupSocket() {
     this.socket.on("connect", () => {
       this.emit("connect", this.socket.id);
     });
@@ -95,6 +101,15 @@ export class SignalClient extends EventEmitter {
     this.socket.on("disconnect", () => {
       this.emit("disconnect", this.socket.id);
     });
+  }
+
+  private async _initSocket(
+    url: string,
+    options: Partial<ManagerOptions & SocketOptions & { socket: LiquidSocket }>,
+  ) {
+    const { io } = await import('socket.io-client');
+    this.socket = io(url, options);
+    this._setupSocket();
   }
 
   static generateRequestId(): string {
@@ -194,7 +209,12 @@ export class SignalClient extends EventEmitter {
       ],
       iceCandidatePoolSize: 10,
     },
+    options: {
+      dataChannels?: Record<string, RTCDataChannelInit>;
+      tracks?: MediaStreamTrack[];
+    } = {},
   ): Promise<RTCDataChannel> {
+    await this._socketPromise;
     if (typeof requestId === "undefined" && typeof this.requestId === "undefined")
       throw new Error(REQUEST_IS_MISSING_MESSAGE);
     if (typeof this.requestId !== "undefined") throw new Error(REQUEST_IN_PROCESS_MESSAGE);
@@ -203,6 +223,12 @@ export class SignalClient extends EventEmitter {
       let candidatesBuffer: RTCIceCandidateInit[] = [];
       // Create Peer Connection
       this.peerClient = new RTCPeerConnection(config);
+
+      if (options.tracks) {
+        options.tracks.forEach((track) => {
+          this.peerClient?.addTrack(track);
+        });
+      }
 
       this.type = type === "offer" ? "answer" : "offer";
       // Wait for a link message
@@ -247,7 +273,12 @@ export class SignalClient extends EventEmitter {
         this.emit(`${this.type}-description`, answer.sdp);
         this.socket.emit(`${this.type}-description`, answer.sdp);
       } else {
-        const dataChannel = this.peerClient.createDataChannel("liquid");
+        const dataChannelsConfig = options.dataChannels || { liquid: {} };
+        const channels: Record<string, RTCDataChannel> = {};
+        for (const [label, init] of Object.entries(dataChannelsConfig)) {
+          channels[label] = this.peerClient.createDataChannel(label, init);
+        }
+        
         const localSdp = await this.peerClient.createOffer();
         await this.peerClient.setLocalDescription(localSdp);
         this.socket.emit(`${this.type}-description`, localSdp.sdp);
@@ -263,8 +294,10 @@ export class SignalClient extends EventEmitter {
           );
           candidatesBuffer = [];
         }
-        this.emit("data-channel", dataChannel);
-        onDataChannel(dataChannel);
+        for (const channel of Object.values(channels)) {
+          this.emit('data-channel', channel);
+        }
+        onDataChannel(channels['liquid'] || Object.values(channels)[0]);
       }
     };
 
@@ -278,6 +311,7 @@ export class SignalClient extends EventEmitter {
    * @param requestId
    */
   async link(requestId: string): Promise<LinkMessage> {
+    await this._socketPromise;
     if (typeof this.requestId !== "undefined") throw new Error(REQUEST_IN_PROCESS_MESSAGE);
     this.requestId = requestId;
     this.emit("link", { requestId });
@@ -298,6 +332,7 @@ export class SignalClient extends EventEmitter {
    * @param type
    */
   async signal(type: "offer" | "answer"): Promise<RTCSessionDescriptionInit> {
+    await this._socketPromise;
     if (!this.authenticated) throw new Error(UNAUTHENTICATED_MESSAGE);
     this.emit("signal", { type });
     return new Promise<RTCSessionDescriptionInit>((resolve) => {
@@ -310,10 +345,19 @@ export class SignalClient extends EventEmitter {
   }
 
   close(disconnect = false): void {
-    this.socket.removeAllListeners();
+    const cleanup = () => {
+      if (this.socket) {
+        this.socket.removeAllListeners();
+        if (disconnect) this.socket.disconnect();
+      }
+    };
+    if (this._socketPromise) {
+      this._socketPromise.then(cleanup).catch(() => {});
+    } else {
+      cleanup();
+    }
     delete this.requestId;
     this.authenticated = false;
-    if (disconnect) this.socket.disconnect();
     this.emit("close");
   }
 }
