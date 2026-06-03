@@ -74,9 +74,19 @@
   "dependencies": {
     "@algorandfoundation/algokit-utils": "^10.0.0-alpha.40",
     "eventemitter3": "^5.0.1",
-    "qr-code-styling": "^1.9.2",
-    "socket.io-client": "^4.7.5",
     "uuid": "^10.0.0"
+  },
+  "peerDependencies": {
+    "qr-code-styling": "^1.9.2",
+    "socket.io-client": "^4.7.5"
+  },
+  "peerDependenciesMeta": {
+    "qr-code-styling": {
+      "optional": true
+    },
+    "socket.io-client": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@codecov/vite-plugin": "^1.9.0",
