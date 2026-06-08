@@ -1,3 +1,10 @@
+# [1.0.0-canary.7](https://github.com/algorandfoundation/liquid-auth-js/compare/v1.0.0-canary.6...v1.0.0-canary.7) (2026-06-08)
+
+
+### Features
+
+* allow datachannel names and media streams ([83ed639](https://github.com/algorandfoundation/liquid-auth-js/commit/83ed6391f408bf8878e3b15f7a7b7535580e3962))
+
 # [1.0.0-canary.6](https://github.com/algorandfoundation/liquid-auth-js/compare/v1.0.0-canary.5...v1.0.0-canary.6) (2026-04-16)
 
 
