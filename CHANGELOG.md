@@ -1,3 +1,10 @@
+# [1.0.0-canary.8](https://github.com/algorandfoundation/liquid-auth-js/compare/v1.0.0-canary.7...v1.0.0-canary.8) (2026-06-08)
+
+
+### Bug Fixes
+
+* externalize peer dependencies ([47accb8](https://github.com/algorandfoundation/liquid-auth-js/commit/47accb80d91144e4d0115e33be79f9d3ba1be190))
+
 # [1.0.0-canary.7](https://github.com/algorandfoundation/liquid-auth-js/compare/v1.0.0-canary.6...v1.0.0-canary.7) (2026-06-08)
 
 
