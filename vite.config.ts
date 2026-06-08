@@ -65,7 +65,10 @@ const config: UserConfig &
     },
     outDir: "lib",
     rollupOptions: {
-      external: Object.keys(pkg.dependencies),
+      external: [
+        ...Object.keys(pkg.dependencies),
+        ...Object.keys(pkg.peerDependencies),
+      ],
       input: Object.fromEntries(
         glob
           .sync("src/**/*.ts", {
