@@ -1,3 +1,10 @@
+# [1.0.0-canary.9](https://github.com/algorandfoundation/liquid-auth-js/compare/v1.0.0-canary.8...v1.0.0-canary.9) (2026-06-10)
+
+
+### Bug Fixes
+
+* security patch, update package dependency lock file ([55ae1ee](https://github.com/algorandfoundation/liquid-auth-js/commit/55ae1eecb70161631cf5f47b8b989a6f189cc016))
+
 # [1.0.0-canary.8](https://github.com/algorandfoundation/liquid-auth-js/compare/v1.0.0-canary.7...v1.0.0-canary.8) (2026-06-08)
 
 
