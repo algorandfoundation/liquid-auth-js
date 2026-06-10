@@ -129,7 +129,8 @@
         {
           "assets": [
             "CHANGELOG.md",
-            "package.json"
+            "package.json",
+            "package-lock.json"
           ],
           "message": "chore(release): [skip ci] Liquid Client \n\n${nextRelease.notes}"
         }
