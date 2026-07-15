@@ -22,7 +22,124 @@ export interface User {
    * Represents an array of credential objects used for authentication or authorization purposes.
    */
   credentials: Credential[];
+
+  /**
+   * Durable pairing authorization returned after a Liquid Auth ceremony.
+   * The credential is role-bound and MUST be stored as a secret.
+   */
+  pairing?: ControllerPairingCredential;
 }
+
+/** A participant's role in a durable pairing. */
+export type PairingRole = "provider" | "controller";
+
+/**
+ * Durable, role-bound authorization for reconnecting to a pairing.
+ *
+ * `credential` is a bearer secret. It must not be logged, placed in a URL, or
+ * shared with the other role.
+ */
+export type PairingCredential = {
+  version: 2;
+  pairingId: string;
+  role: PairingRole;
+  credential: string;
+};
+
+/** Durable authorization held by the provider that created an invitation. */
+export type ProviderPairingCredential = PairingCredential & {
+  role: "provider";
+};
+
+/** Durable authorization returned to the controller after WebAuthn approval. */
+export type ControllerPairingCredential = PairingCredential & {
+  role: "controller";
+};
+
+/** Provider authorization created before an invitation is shown. */
+export type PairingInvitation = ProviderPairingCredential & {
+  expiresAt: string;
+};
+
+/** State of an invitation that has not yet completed WebAuthn approval. */
+export type PendingPairingStatus = {
+  version: 2;
+  pairingId: string;
+  role: "provider";
+  status: "pending";
+  wallet?: never;
+};
+
+/** State of a pairing that has completed WebAuthn approval. */
+export type EstablishedPairingStatus = {
+  version: 2;
+  pairingId: string;
+  role: PairingRole;
+  status: "active" | "revoked";
+  wallet: string;
+};
+
+/** Current server-side state for a role-authorized pairing. */
+export type PairingStatus = PendingPairingStatus | EstablishedPairingStatus;
+
+/** A color gradient used by QR code styling options. */
+export type QRCodeGradient = {
+  type: "radial" | "linear";
+  rotation?: number;
+  colorStops: Array<{ offset: number; color: string }>;
+};
+
+/**
+ * Browser-safe QR code styling options.
+ *
+ * This mirrors the public options accepted by the optional `qr-code-styling`
+ * peer without exposing that package's Node-only `canvas` and `jsdom` types to
+ * every TypeScript consumer of liquid-client.
+ */
+export type QRCodeOptions = {
+  type?: "canvas" | "svg";
+  shape?: "square" | "circle";
+  width?: number;
+  height?: number;
+  margin?: number;
+  data?: string;
+  image?: string;
+  nodeCanvas?: unknown;
+  jsdom?: unknown;
+  qrOptions?: {
+    typeNumber?: number;
+    mode?: "Numeric" | "Alphanumeric" | "Byte" | "Kanji";
+    errorCorrectionLevel?: "L" | "M" | "Q" | "H";
+  };
+  imageOptions?: {
+    saveAsBlob?: boolean;
+    hideBackgroundDots?: boolean;
+    imageSize?: number;
+    crossOrigin?: string;
+    margin?: number;
+  };
+  dotsOptions?: {
+    type?: "dots" | "rounded" | "classy" | "classy-rounded" | "square" | "extra-rounded";
+    color?: string;
+    gradient?: QRCodeGradient;
+    roundSize?: boolean;
+  };
+  cornersSquareOptions?: {
+    type?: "dot" | "square" | "extra-rounded" | "dots" | "rounded" | "classy" | "classy-rounded";
+    color?: string;
+    gradient?: QRCodeGradient;
+  };
+  cornersDotOptions?: {
+    type?: "dot" | "square" | "dots" | "rounded" | "classy" | "classy-rounded" | "extra-rounded";
+    color?: string;
+    gradient?: QRCodeGradient;
+  };
+  backgroundOptions?: {
+    round?: number;
+    color?: string;
+    gradient?: QRCodeGradient;
+  };
+};
 
 /**
  * Represents a credential used for authentication purposes.
@@ -93,9 +210,18 @@ export type LiquidExtensionOptions = {
  */
 export interface LiquidSocket {
   id?: string;
+  connected?: boolean;
+  /** Whether Socket.IO will automatically reconnect after the latest disconnect. */
+  active?: boolean;
+  auth?: object | ((callback: (data: object) => void) => void);
   on(event: string, listener: (...args: any[]) => void): this;
   once(event: string, listener: (...args: any[]) => void): this;
+  /** Optional EventEmitter-compatible targeted listener removal. */
+  off?(event: string, listener?: (...args: any[]) => void): this;
+  /** Optional Node/EventEmitter alias for adapters that do not expose `off`. */
+  removeListener?(event: string, listener: (...args: any[]) => void): this;
   emit(event: string, ...args: any[]): this;
+  connect?(): this;
   disconnect(): this;
   removeAllListeners(event?: string): this;
 }

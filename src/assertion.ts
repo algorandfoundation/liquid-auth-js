@@ -4,17 +4,15 @@
  * @packageDocumentation
  * @document ./assertion.guide.md
  */
-import { postOptions, postResponse } from "./assertion.fetch.js";
+import { postOptions, postResponse, type AssertionRequestOptions } from "./assertion.fetch.js";
 import { decodeOptions, encodeCredential } from "./assertion.encoder.js";
 import { AUTHENTICATOR_NOT_SUPPORTED_MESSAGE, INVALID_INPUT_MESSAGE } from "./errors.js";
-import type {
-  PublicKeyCredentialRequestOptions,
-  PublicKeyCredentialRequestOptionsJSON,
-} from "@simplewebauthn/browser";
+import type { PublicKeyCredentialRequestOptionsJSON } from "@simplewebauthn/browser";
 import type { User } from "./types.ts";
 
 export * as fetch from "./assertion.fetch.js";
 export * as encoder from "./assertion.encoder.js";
+export type { AssertionRequestOptions } from "./assertion.fetch.js";
 
 /**
  * Represents the options for an assertion used during authentication.
@@ -44,6 +42,8 @@ export type AssertionOptions = {
    * the request may rely on default or previously established options.
    */
   options?: PublicKeyCredentialRequestOptionsJSON;
+  /** Server-side assertion challenge options, including a durable pairing request id. */
+  requestOptions?: AssertionRequestOptions;
   /**
    * A boolean flag to enable or disable debug mode.
    * If set to `true`, the application may output additional
@@ -67,8 +67,11 @@ export type AssertionOptions = {
 export async function assertion(params: AssertionOptions): Promise<User | null> {
   if (typeof navigator === "undefined") throw new Error(AUTHENTICATOR_NOT_SUPPORTED_MESSAGE);
   if (typeof params === "undefined") throw new Error(INVALID_INPUT_MESSAGE);
-  const { origin, credId, options, debug } = params;
+  const { origin, credId, options, requestOptions, debug } = params;
   if (typeof credId !== "string" || typeof origin !== "string") {
+    throw new TypeError(INVALID_INPUT_MESSAGE);
+  }
+  if (options !== undefined && requestOptions !== undefined) {
     throw new TypeError(INVALID_INPUT_MESSAGE);
   }
   if (debug)
@@ -78,7 +81,7 @@ export async function assertion(params: AssertionOptions): Promise<User | null> 
   const credentialOptions: PublicKeyCredentialRequestOptions =
     typeof options !== "undefined"
       ? decodeOptions(options)
-      : await postOptions(origin, credId).then(decodeOptions);
+      : await postOptions(origin, credId, requestOptions).then(decodeOptions);
 
   if (credentialOptions.allowCredentials?.length === 0) {
     if (debug) console.info("No registered credentials found.");
@@ -102,6 +105,14 @@ export async function assertion(params: AssertionOptions): Promise<User | null> 
 
   // Encode the credential for submitting to the service
   const encodedCredential = encodeCredential(credential);
+  if (requestOptions?.requestId) {
+    const extensionResults = encodedCredential.clientExtensionResults as Record<string, unknown>;
+    const existingLiquid = extensionResults.liquid;
+    extensionResults.liquid = {
+      ...(existingLiquid && typeof existingLiquid === "object" ? existingLiquid : {}),
+      requestId: requestOptions.requestId,
+    };
+  }
 
   if (debug)
     console.log(

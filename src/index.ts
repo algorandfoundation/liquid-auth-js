@@ -13,5 +13,6 @@ export * as errors from "./errors.ts";
 export * as signal from "./signal.ts";
 
 export * from "./types.ts";
+export * from "./pairing.ts";
 
 export * from "./signal.ts";

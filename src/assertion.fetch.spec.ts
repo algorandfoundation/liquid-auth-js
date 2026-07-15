@@ -29,7 +29,8 @@ describe("assertion/fetch", async () => {
       publicKey: assertion.encoder.decodeOptions(encodedOptions),
     });
     // Encode the Credential for sending to the service
-    const encodedCredential: AuthenticationResponseJSON = assertion.encoder.encodeCredential(credential);
+    const encodedCredential: AuthenticationResponseJSON =
+      assertion.encoder.encodeCredential(credential);
     // #endregion guideCredentialGet
 
     // #region guideResponse
@@ -45,6 +46,21 @@ describe("assertion/fetch", async () => {
       requestParamFixtures.map(async (credId, index) => {
         const response = await assertion.fetch.postOptions(`https://localhost:${index}`, credId);
         expect(response).toEqual(requestResponseFixtures[index]);
+      }),
+    );
+  });
+  it("(OK) should bind a pairing id to the assertion challenge request", async () => {
+    const credentialId = requestParamFixtures[0];
+    const requestId = "019097ff-bb8d-7f68-9062-89543625aca5";
+
+    await assertion.fetch.postOptions("https://localhost:0", credentialId, { requestId });
+
+    expect(globalThis.fetch).toHaveBeenCalledWith(
+      `https://localhost:0/assertion/request/${credentialId}`,
+      expect.objectContaining({
+        body: JSON.stringify({ requestId }),
+        credentials: "include",
+        method: "POST",
       }),
     );
   });

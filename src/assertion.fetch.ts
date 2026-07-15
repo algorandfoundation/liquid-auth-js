@@ -6,6 +6,12 @@ import type {
   PublicKeyCredentialRequestOptionsJSON,
 } from "@simplewebauthn/browser";
 
+/** Optional server-side overrides used when issuing an assertion challenge. */
+export type AssertionRequestOptions = Partial<PublicKeyCredentialRequestOptionsJSON> & {
+  /** Public invitation id to bind to the verified assertion ceremony. */
+  requestId?: string;
+};
+
 /**
  * Fetch Assertion Options
  *
@@ -20,12 +26,20 @@ import type {
 export async function postOptions(
   origin: string,
   credId: string,
+  requestOptions?: AssertionRequestOptions,
 ): Promise<PublicKeyCredentialRequestOptionsJSON> {
-  if (typeof origin !== "string" || typeof credId !== "string") {
+  if (
+    typeof origin !== "string" ||
+    typeof credId !== "string" ||
+    (requestOptions !== undefined &&
+      (!requestOptions || typeof requestOptions !== "object" || Array.isArray(requestOptions))) ||
+    (requestOptions?.requestId !== undefined && typeof requestOptions.requestId !== "string")
+  ) {
     throw new TypeError(INVALID_INPUT_MESSAGE);
   }
   return await fetch(`${origin}/assertion/request/${credId}`, {
     ...DEFAULT_FETCH_OPTIONS,
+    ...(requestOptions === undefined ? {} : { body: JSON.stringify(requestOptions) }),
   }).then((r) => {
     if (!isValidResponse(r)) {
       throw new Error(INVALID_RESPONSE_MESSAGE);

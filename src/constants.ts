@@ -13,7 +13,7 @@
  * @packageDocumentation
  * @protected
  */
-import type { Options as QRCodeOptions } from "qr-code-styling";
+import type { QRCodeOptions } from "./types.ts";
 
 /**
  * DEFAULT_FETCH_OPTIONS is a constant object used as a default configuration
@@ -33,6 +33,7 @@ import type { Options as QRCodeOptions } from "qr-code-styling";
  */
 export const DEFAULT_FETCH_OPTIONS = {
   method: "POST",
+  credentials: "include" as const,
   headers: {
     "Content-Type": "application/json",
   },

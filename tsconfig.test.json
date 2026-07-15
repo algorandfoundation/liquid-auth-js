@@ -10,7 +10,8 @@
       "@algorandfoundation/liquid-client/attestation/encoder": ["./src/attestation.encoder.ts"],
       "@algorandfoundation/liquid-client/assertion": ["./src/assertion.ts"],
       "@algorandfoundation/liquid-client/assertion/fetch": ["./src/assertion.fetch.ts"],
-      "@algorandfoundation/liquid-client/assertion/encoder": ["./src/assertion.encoder.ts"]
+      "@algorandfoundation/liquid-client/assertion/encoder": ["./src/assertion.encoder.ts"],
+      "socket.io-mock-ts": ["./node_modules/socket.io-mock-ts/dist/index.d.ts"]
     }
   },
   "exclude": ["node_modules", "lib", "dist"],
