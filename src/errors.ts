@@ -48,6 +48,27 @@ export const REQUEST_IN_PROCESS_MESSAGE = "Request in process";
 export const UNAUTHENTICATED_MESSAGE = "Not authenticated";
 export const ORIGIN_IS_MISSING_MESSAGE = "Origin is required";
 
+export type SignalErrorCode =
+  | "SIGNAL_TIMEOUT"
+  | "SIGNAL_ABORTED"
+  | "SIGNAL_DISCONNECTED"
+  | "SIGNAL_CLOSED"
+  | "SIGNAL_SERVER_ERROR"
+  | "SIGNAL_PROTOCOL_ERROR"
+  | "PAIRING_REVOKED"
+  | "PAIRING_UNAUTHORIZED";
+
+/** Error with a stable code so connection supervisors can classify retries. */
+export class SignalError extends Error {
+  readonly code: SignalErrorCode;
+
+  constructor(code: SignalErrorCode, message: string, options?: ErrorOptions) {
+    super(message, options);
+    this.name = "SignalError";
+    this.code = code;
+  }
+}
+
 export class ServiceError extends Error {}
 
 export function isValidResponse(r: Response): boolean {

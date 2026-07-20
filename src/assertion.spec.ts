@@ -1,4 +1,4 @@
-import { describe, it, beforeAll, expect } from "vitest";
+import { describe, it, beforeAll, expect, vi } from "vitest";
 import { createMocks } from "./test/test.config";
 // #region assertionImport
 import { assertion } from "@algorandfoundation/liquid-client/assertion";
@@ -49,6 +49,29 @@ describe("assertion", async () => {
       },
     });
     expect(response).toEqual(null);
+  });
+
+  it("(OK) should request a challenge bound to a durable pairing", async () => {
+    const credId = requestParamFixtures[0];
+    const requestId = "019097ff-bb8d-7f68-9062-89543625aca5";
+
+    await assertion({
+      origin: "https://example-site:0",
+      credId,
+      requestOptions: { requestId },
+    });
+
+    expect(globalThis.fetch).toHaveBeenCalledWith(
+      `https://example-site:0/assertion/request/${credId}`,
+      expect.objectContaining({ body: JSON.stringify({ requestId }) }),
+    );
+    const responseCall = vi
+      .mocked(globalThis.fetch)
+      .mock.calls.filter(([input]) => String(input).endsWith("/assertion/response"))
+      .at(-1);
+    expect(JSON.parse(String(responseCall?.[1]?.body))).toMatchObject({
+      clientExtensionResults: { liquid: { requestId } },
+    });
   });
 
   describe("Negative Tests", async () => {

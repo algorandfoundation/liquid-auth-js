@@ -3,12 +3,14 @@ import { fromBase64Url, toBase64URL } from "./encoding.js";
 import type {
   AuthenticationResponseJSON,
   AuthenticatorAssertionResponseJSON,
-  PublicKeyCredentialDescriptor,
   PublicKeyCredentialDescriptorJSON,
-  PublicKeyCredentialRequestOptions,
   PublicKeyCredentialRequestOptionsJSON,
   PublicKeyCredentialType,
 } from "@simplewebauthn/browser";
+
+function decodeArrayBuffer(value: string): ArrayBuffer {
+  return Uint8Array.from(fromBase64Url(value)).buffer;
+}
 
 /**
  * Encodes the AuthenticatorAssertionResponse into a JSON-compatible format.
@@ -42,12 +44,12 @@ export function decodeOptions(
     throw new TypeError(INVALID_INPUT_MESSAGE);
   return {
     ...options,
-    challenge: fromBase64Url(options.challenge),
+    challenge: decodeArrayBuffer(options.challenge),
     allowCredentials:
       options.allowCredentials?.map((cred: PublicKeyCredentialDescriptorJSON) => {
         return {
           ...cred,
-          id: fromBase64Url(cred.id),
+          id: decodeArrayBuffer(cred.id),
         } as PublicKeyCredentialDescriptor;
       }) || [],
   };
