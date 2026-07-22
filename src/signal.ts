@@ -15,6 +15,7 @@ import { assertion } from "./assertion.ts";
 
 import { DEFAULT_QR_CODE_OPTIONS } from "./constants.ts";
 import {
+  LinkError,
   ORIGIN_IS_MISSING_MESSAGE,
   REQUEST_IN_PROCESS_MESSAGE,
   REQUEST_IS_MISSING_MESSAGE,
@@ -308,6 +309,17 @@ export class SignalClient extends EventEmitter {
 
   /**
    * Await for a link message for a given requestId
+   *
+   * Resolves with the server's {@link LinkMessage} once the room association is
+   * acknowledged. Rejects with a {@link LinkError} when the server REFUSES the
+   * join (e.g. the `requestId` room is full or already holds a device of the
+   * same role under the two-peer room policy): NestJS delivers that refusal as
+   * a generic `exception` event rather than through the `link` ack, so it is
+   * observed here and, scoped to this `requestId`, turned into a rejected
+   * promise — and re-emitted as a `link-error` event for non-promise
+   * consumers. Without this, a refused peer would never settle and would hang
+   * until the caller's own signaling timeout.
+   *
    * @param requestId
    */
   async link(requestId: string): Promise<LinkMessage> {
@@ -316,8 +328,33 @@ export class SignalClient extends EventEmitter {
     this.requestId = requestId;
     this.emit("link", { requestId });
 
-    return new Promise<LinkMessage>((resolve) => {
+    return new Promise<LinkMessage>((resolve, reject) => {
+      let settled = false;
+
+      // The gateway's link refusal arrives as a generic `exception` event
+      // (Nest's default WS filter), NOT via the ack. Filter it to THIS
+      // requestId so an unrelated exception can't settle this link, and detach
+      // the listener the moment either path wins so it never leaks.
+      const onException = (payload: any) => {
+        if (settled) return;
+        if (payload?.event === "link-error" && payload?.requestId === requestId) {
+          settled = true;
+          this.socket.off?.("exception", onException);
+          delete this.requestId;
+          const error = new LinkError(payload?.message ?? "Link rejected", {
+            reason: payload?.reason,
+            requestId,
+          });
+          this.emit("link-error", error);
+          reject(error);
+        }
+      };
+      this.socket.on("exception", onException);
+
       this.socket.emit("link", { requestId }, ({ data }: { data: LinkMessage }) => {
+        if (settled) return;
+        settled = true;
+        this.socket.off?.("exception", onException);
         this.authenticated = true;
         delete this.requestId;
 

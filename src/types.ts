@@ -95,6 +95,14 @@ export interface LiquidSocket {
   id?: string;
   on(event: string, listener: (...args: any[]) => void): this;
   once(event: string, listener: (...args: any[]) => void): this;
+  /**
+   * Detach a previously-attached listener (or all listeners for `event` when no
+   * `listener` is given). Needed to remove one-shot listeners — e.g. the
+   * `exception` listener {@link SignalClient.link} attaches to observe a server
+   * link refusal — without disturbing the socket's other listeners. The real
+   * socket.io `Socket` implements this; minimal fakes may omit it.
+   */
+  off(event: string, listener?: (...args: any[]) => void): this;
   emit(event: string, ...args: any[]): this;
   disconnect(): this;
   removeAllListeners(event?: string): this;

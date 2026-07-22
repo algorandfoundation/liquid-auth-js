@@ -50,6 +50,51 @@ export const ORIGIN_IS_MISSING_MESSAGE = "Origin is required";
 
 export class ServiceError extends Error {}
 
+/**
+ * The reasons a Liquid Auth signaling server can refuse to admit a device to a
+ * `requestId` room under the two-peer room policy (one wallet `admin` + one
+ * non-admin `peer`, max two devices). Mirrors the `reason` field the gateway
+ * puts on the payload of the `link-error` `WsException` it throws.
+ *
+ * @protected
+ */
+export type LinkErrorReason = "room-full" | "duplicate-admin" | "duplicate-peer";
+
+/**
+ * Raised when the signaling server refuses a `link` request — e.g. the
+ * `requestId` room is already full, or already holds a device of the same
+ * role.
+ *
+ * NestJS delivers the gateway's `WsException` as a generic `exception` event
+ * (its default WS exception filter does NOT invoke the `link` ack), so
+ * {@link SignalClient.link} listens for it and translates a refusal into a
+ * rejected promise carrying this typed error. Callers can then distinguish a
+ * deterministic room refusal (retrying cannot help) from a plain signaling
+ * timeout (the peer may simply not be linked yet).
+ *
+ * @protected
+ */
+export class LinkError extends ServiceError {
+  /** Machine-readable refusal reason, when the server supplied one. */
+  readonly reason?: LinkErrorReason;
+  /** The `requestId` the refused link was for, when known. */
+  readonly requestId?: string;
+
+  constructor(
+    message: string,
+    opts?: { reason?: LinkErrorReason; requestId?: string },
+  ) {
+    super(message);
+    this.name = "LinkError";
+    this.reason = opts?.reason;
+    this.requestId = opts?.requestId;
+    // Preserve `instanceof LinkError` even when the class is extended or the
+    // build target down-levels `extends Error` (which otherwise resets the
+    // prototype chain).
+    Object.setPrototypeOf(this, LinkError.prototype);
+  }
+}
+
 export function isValidResponse(r: Response): boolean {
   return r.ok && (r.status === 200 || r.status === 201);
 }

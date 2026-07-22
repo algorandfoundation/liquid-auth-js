@@ -8,6 +8,10 @@ export * as attestation from "./attestation.ts";
 // Module helpers
 export * as constants from "./constants.ts";
 export * as errors from "./errors.ts";
+// Surface the signaling-refusal error at the top level too, so consumers can
+// `import { LinkError }` from the package root alongside `SignalClient` without
+// reaching into the `errors` namespace.
+export { LinkError, type LinkErrorReason } from "./errors.ts";
 
 // P2P Clients
 export * as signal from "./signal.ts";

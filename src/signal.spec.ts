@@ -2,6 +2,7 @@ import { vi, test, expect, describe, beforeEach, afterEach } from "vitest";
 import { SocketServerMock } from "socket.io-mock-ts";
 import { SignalClient, generateQRCode, generateDeepLink, type LinkMessage } from "./signal";
 import {
+  LinkError,
   REQUEST_IN_PROCESS_MESSAGE,
   REQUEST_IS_MISSING_MESSAGE,
   UNAUTHENTICATED_MESSAGE,
@@ -409,6 +410,55 @@ describe("SignalClient", function () {
     await expect(() => client.link(requestId)).rejects.toThrow(
       new Error(REQUEST_IN_PROCESS_MESSAGE),
     );
+  });
+
+  test("link rejects with a LinkError when the server refuses the join", async function () {
+    const requestId = SignalClient.generateRequestId();
+    // The gateway refuses the join (two-peer room policy) by throwing a
+    // WsException, which Nest's default filter delivers as a generic
+    // `exception` event instead of invoking the `link` ack.
+    socket.on("link", (_payload: { requestId: string }) => {
+      socket.emit("exception", {
+        event: "link-error",
+        reason: "room-full",
+        requestId,
+        message: `room ${requestId} is full`,
+      });
+    });
+    const result = client.link(requestId);
+    await expect(result).rejects.toBeInstanceOf(LinkError);
+    // The typed error carries the machine-readable reason + requestId, and the
+    // in-flight `requestId` is cleared so a follow-up link isn't blocked.
+    await result.catch((err: LinkError) => {
+      expect(err.reason).toBe("room-full");
+      expect(err.requestId).toBe(requestId);
+    });
+    expect(client.requestId).toBeUndefined();
+    // Also re-emitted as an observable `link-error` event for non-promise
+    // consumers (UI).
+    expect(client.emit).toHaveBeenCalledWith("link-error", expect.any(LinkError));
+  });
+
+  test("link ignores an `exception` for a DIFFERENT requestId", async function () {
+    const requestId = SignalClient.generateRequestId();
+    const otherRequestId = SignalClient.generateRequestId();
+    const linkMessageFixture: LinkMessage = {
+      requestId,
+      wallet: "65X3KSKFCNX3VUPQDVO3RQUHDZN7BONGBEC6PJWAVKX73DIC356M7M32JM",
+    };
+    socket.on(
+      "link",
+      (_payload: { requestId: string }, ack: (options: { data: LinkMessage }) => void) => {
+        // A stray exception scoped to another room must NOT settle this link.
+        socket.emit("exception", {
+          event: "link-error",
+          reason: "room-full",
+          requestId: otherRequestId,
+        });
+        ack({ data: linkMessageFixture });
+      },
+    );
+    await expect(client.link(requestId)).resolves.toEqual(linkMessageFixture);
   });
 
   test("signal", async function () {
