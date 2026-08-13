@@ -1,3 +1,10 @@
+# [1.0.0-canary.10](https://github.com/algorandfoundation/liquid-auth-js/compare/v1.0.0-canary.9...v1.0.0-canary.10) (2026-08-13)
+
+
+### Bug Fixes
+
+* security patches ([4cfb56f](https://github.com/algorandfoundation/liquid-auth-js/commit/4cfb56f1969d6efabb9fe99f41eb0399e093196c))
+
 # [1.0.0-canary.9](https://github.com/algorandfoundation/liquid-auth-js/compare/v1.0.0-canary.8...v1.0.0-canary.9) (2026-06-10)
 
 
